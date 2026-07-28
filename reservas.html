@@ -1,0 +1,1108 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Controle de Reservas</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #f5f4f0;
+    --surface: #ffffff;
+    --surface-alt: #f9f8f6;
+    --border: #e4e2dc;
+    --border-strong: #ccc9c0;
+    --text: #1a1a18;
+    --text-muted: #888780;
+    --text-secondary: #5f5e5a;
+    --accent: #2563eb;
+    --accent-bg: #eff6ff;
+    --accent-border: #bfdbfe;
+    --success-bg: #f0fdf4;
+    --success-text: #15803d;
+    --success-border: #bbf7d0;
+    --danger-bg: #fef2f2;
+    --danger-text: #b91c1c;
+    --danger-border: #fecaca;
+    --warning-bg: #fffbeb;
+    --warning-text: #b45309;
+    --warning-border: #fde68a;
+    --radius: 10px;
+    --shadow: 0 1px 3px rgba(0,0,0,0.07), 0 1px 2px rgba(0,0,0,0.04);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1a1a18;
+      --surface: #242422;
+      --surface-alt: #1f1f1d;
+      --border: #333330;
+      --border-strong: #444441;
+      --text: #f0ede8;
+      --text-muted: #888780;
+      --text-secondary: #b4b2a9;
+      --accent: #3b82f6;
+      --accent-bg: #1e3a5f;
+      --accent-border: #2563eb;
+      --success-bg: #14301f;
+      --success-text: #4ade80;
+      --success-border: #166534;
+      --danger-bg: #2d1515;
+      --danger-text: #f87171;
+      --danger-border: #7f1d1d;
+      --warning-bg: #2d2008;
+      --warning-text: #fbbf24;
+      --warning-border: #78350f;
+    }
+  }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    font-size: 15px;
+    line-height: 1.5;
+    min-height: 100vh;
+  }
+  .topbar {
+    background: var(--surface);
+    border-bottom: 0.5px solid var(--border);
+    padding: 0 1.5rem;
+    min-height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+  .topbar-brand { font-size: 16px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+  .topbar-brand i { color: var(--accent); font-size: 20px; }
+  .topbar-actions { display: flex; align-items: center; gap: 8px; }
+  .app { max-width: 760px; margin: 0 auto; padding: 1.5rem 1rem 4rem; }
+  .screen-wide { max-width: min(100vw - 24px, 1600px); }
+  .nav {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 1.5rem;
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    border-radius: 12px;
+    padding: 4px;
+    overflow-x: auto;
+  }
+  .nav-btn {
+    flex: 1;
+    min-width: 0;
+    padding: 8px 10px;
+    border: none;
+    border-radius: 8px;
+    background: transparent;
+    color: var(--text-secondary);
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.15s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    font-family: inherit;
+    white-space: nowrap;
+  }
+  .nav-btn:hover { background: var(--surface-alt); color: var(--text); }
+  .nav-btn.active { background: var(--accent); color: #fff; font-weight: 500; }
+  .screen { display: none; }
+  .screen.active { display: block; }
+  .card {
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    border-radius: 12px;
+    padding: 1.25rem;
+    margin-bottom: 1rem;
+    box-shadow: var(--shadow);
+  }
+  .card-title {
+    font-size: 15px;
+    font-weight: 600;
+    margin-bottom: 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+  }
+  .card-title i { color: var(--accent); }
+  .stat-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-bottom: 1.25rem;
+  }
+  .stat {
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    border-radius: 10px;
+    padding: 0.9rem 1rem;
+    box-shadow: var(--shadow);
+  }
+  .stat-label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
+  .stat-val { font-size: 22px; font-weight: 600; margin-top: 4px; }
+  .stat-val.accent { color: var(--accent); }
+  label {
+    font-size: 13px;
+    color: var(--text-secondary);
+    display: block;
+    margin-bottom: 5px;
+    margin-top: 14px;
+    font-weight: 500;
+  }
+  label:first-child { margin-top: 0; }
+  input, select, textarea {
+    width: 100%;
+    padding: 9px 11px;
+    border: 0.5px solid var(--border-strong);
+    border-radius: 8px;
+    background: var(--surface-alt);
+    color: var(--text);
+    font-size: 14px;
+    font-family: inherit;
+    transition: border-color 0.15s, box-shadow 0.15s;
+    appearance: auto;
+  }
+  textarea { min-height: 90px; resize: vertical; }
+  input[type="checkbox"] { width: auto; accent-color: var(--accent); }
+  input:focus, select:focus, textarea:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-bg);
+  }
+  input:disabled { opacity: 0.6; cursor: not-allowed; }
+  .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .btn {
+    padding: 8px 16px;
+    border-radius: 8px;
+    border: 0.5px solid var(--border-strong);
+    background: var(--surface);
+    color: var(--text);
+    font-size: 13px;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.15s;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-weight: 500;
+  }
+  .btn:hover { background: var(--surface-alt); }
+  .btn:active { transform: scale(0.98); }
+  .btn.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .btn.primary:hover { opacity: 0.92; }
+  .btn.danger { background: var(--danger-bg); color: var(--danger-text); border-color: var(--danger-border); }
+  .btn.success-btn { background: var(--success-bg); color: var(--success-text); border-color: var(--success-border); }
+  .actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 1.25rem;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+  }
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 9px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+  }
+  .badge.confirmed { background: var(--success-bg); color: var(--success-text); border: 0.5px solid var(--success-border); }
+  .badge.pending { background: var(--warning-bg); color: var(--warning-text); border: 0.5px solid var(--warning-border); }
+  .badge.absent { background: var(--danger-bg); color: var(--danger-text); border: 0.5px solid var(--danger-border); }
+  .reserva-item {
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    border-radius: 12px;
+    padding: 1rem 1.25rem;
+    margin-bottom: 10px;
+    box-shadow: var(--shadow);
+  }
+  .reserva-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
+  .reserva-nome { font-size: 15px; font-weight: 600; }
+  .reserva-nome-tag { font-size: 13px; color: var(--text-muted); font-weight: 400; margin-left: 4px; }
+  .reserva-sub { font-size: 13px; color: var(--text-secondary); margin-top: 3px; }
+  .reserva-info {
+    display: flex;
+    gap: 14px;
+    margin-top: 10px;
+    flex-wrap: wrap;
+  }
+  .info-chip {
+    font-size: 12px;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .info-chip i { font-size: 14px; }
+  .reserva-actions { display: flex; gap: 6px; margin-top: 10px; flex-wrap: wrap; }
+  .comprovante-box {
+    border: 1.5px dashed var(--border-strong);
+    border-radius: 8px;
+    padding: 2rem;
+    text-align: center;
+    cursor: pointer;
+    background: var(--surface-alt);
+    margin-top: 5px;
+  }
+  .comprovante-box:hover { border-color: var(--accent); background: var(--accent-bg); }
+  .comprovante-box p { font-size: 13px; color: var(--text-muted); margin-top: 6px; }
+  .comprovante-box i { font-size: 28px; color: var(--text-muted); }
+  .comprovante-box:hover i { color: var(--accent); }
+  .comprovante-preview {
+    width: 100%;
+    max-height: 200px;
+    object-fit: cover;
+    border-radius: 8px;
+    margin-top: 8px;
+    border: 0.5px solid var(--border);
+  }
+  .empty { text-align: center; padding: 3rem 1rem; color: var(--text-muted); font-size: 14px; }
+  .empty i { font-size: 36px; display: block; margin-bottom: 10px; color: var(--text-muted); }
+  .presenca-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 0;
+    border-bottom: 0.5px solid var(--border);
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .presenca-item:last-child { border-bottom: none; }
+  .presenca-name { font-size: 14px; font-weight: 600; }
+  .presenca-date { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+  .presenca-btns { display: flex; gap: 6px; align-items: center; }
+  .modal-img {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    padding: 1rem;
+  }
+  .modal-img img { max-width: 100%; max-height: 90vh; border-radius: 8px; }
+  .modal-img-close {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: white;
+    border: none;
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    cursor: pointer;
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .toast {
+    position: fixed;
+    bottom: 1.5rem;
+    left: 50%;
+    transform: translateX(-50%) translateY(80px);
+    background: var(--surface);
+    border: 0.5px solid var(--border-strong);
+    border-radius: 10px;
+    padding: 10px 18px;
+    font-size: 13px;
+    font-weight: 500;
+    z-index: 200;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+    transition: transform 0.25s ease;
+    white-space: nowrap;
+  }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+  .section-hint { font-size: 12px; color: var(--text-muted); margin-top: 3px; }
+  .sheet-toolbar {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    margin-bottom: 1rem;
+  }
+  .sheet-tools { display: flex; gap: 8px; flex-wrap: wrap; }
+  .sheet-summary {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 10px;
+    margin-bottom: 1rem;
+  }
+  .sheet-summary-card {
+    background: linear-gradient(180deg, #111111 0%, #1f1f1f 100%);
+    color: #fff;
+    border-radius: 12px;
+    padding: 14px 16px;
+    border: 1px solid #2d2d2d;
+    box-shadow: var(--shadow);
+  }
+  .sheet-summary-card .kicker {
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.65);
+  }
+  .sheet-summary-card .value {
+    font-size: 22px;
+    font-weight: 700;
+    margin-top: 4px;
+  }
+  .sheet-summary-card .sub {
+    font-size: 12px;
+    color: rgba(255,255,255,0.72);
+    margin-top: 2px;
+  }
+  .sheet-table-wrap {
+    border: 1px solid #d7d4cd;
+    border-radius: 12px;
+    overflow: auto;
+    max-height: none;
+    flex: 1;
+    min-height: 460px;
+    background: #fff;
+    box-shadow: var(--shadow);
+  }
+  .sheet-table {
+    width: 100%;
+    min-width: 1260px;
+    border-collapse: collapse;
+    font-size: 12px;
+  }
+  .sheet-table thead th {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    background: var(--accent);
+    color: #fff;
+    text-align: left;
+    padding: 9px 10px;
+    border: 1px solid rgba(255,255,255,0.18);
+    white-space: nowrap;
+    font-weight: 600;
+  }
+  .sheet-table tbody td {
+    padding: 7px 10px;
+    border: 1px solid #d9d7d2;
+    vertical-align: middle;
+    background: #fff;
+    white-space: nowrap;
+    color: #000;
+    font-size: 13px;
+  }
+  .sheet-table thead th:first-child,
+  .sheet-table tbody td:first-child { border-left: 1px solid #d9d7d2; }
+  .sheet-table thead th:last-child,
+  .sheet-table tbody td:last-child { border-right: 1px solid #d9d7d2; }
+  .sheet-table tbody tr:nth-child(even) td { background: #f4f4f4; }
+  .sheet-table tbody tr:hover td { background: #eef5ff; }
+  .sheet-table .muted { color: var(--text-muted); }
+  .sheet-table .center { text-align: center; }
+  .sheet-table .right { text-align: right; }
+  .sheet-table .actions-cell { display: flex; gap: 6px; align-items: center; }
+  .sheet-table .mini-btn { padding: 4px 8px; font-size: 11px; border-radius: 6px; }
+  .sheet-empty { padding: 2rem; text-align: center; color: var(--text-muted); }
+  #screen-planilha .card {
+    min-height: calc(100vh - 230px);
+    display: flex;
+    flex-direction: column;
+  }
+  @media (max-width: 600px) {
+    .row { grid-template-columns: 1fr; }
+    .stat-row { grid-template-columns: 1fr 1fr; }
+    .sheet-summary { grid-template-columns: 1fr 1fr; }
+    .nav-btn span { display: none; }
+    .topbar { padding: 0 1rem; }
+  }
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="topbar-brand">
+    <i class="ti ti-calendar-event"></i>
+    Controle de Reservas
+  </div>
+  <div class="topbar-actions">
+    <button class="btn" onclick="showScreen('planilha')">
+      <i class="ti ti-table"></i> Planilha
+    </button>
+    <button class="btn primary" onclick="abrirNovaReserva()">
+      <i class="ti ti-plus"></i> Nova reserva
+    </button>
+  </div>
+</div>
+
+<div class="app screen-wide">
+  <div class="nav">
+    <button class="nav-btn active" onclick="showScreen('lista')" id="nav-lista">
+      <i class="ti ti-list"></i> <span>Reservas</span>
+    </button>
+    <button class="nav-btn" onclick="showScreen('planilha')" id="nav-planilha">
+      <i class="ti ti-table"></i> <span>Planilha</span>
+    </button>
+    <button class="nav-btn" onclick="abrirNovaReserva()" id="nav-nova">
+      <i class="ti ti-plus"></i> <span>Nova</span>
+    </button>
+    <button class="nav-btn" onclick="showScreen('presenca')" id="nav-presenca">
+      <i class="ti ti-user-check"></i> <span>Presenças</span>
+    </button>
+    <button class="nav-btn" onclick="showScreen('alterar')" id="nav-alterar">
+      <i class="ti ti-calendar-edit"></i> <span>Alterar data</span>
+    </button>
+  </div>
+
+  <div class="screen" id="screen-planilha">
+    <div class="card">
+      <div class="sheet-toolbar">
+        <div>
+          <div class="card-title" style="margin-bottom:4px"><i class="ti ti-table"></i> Planilha de reservas</div>
+          <div class="section-hint">Visualização no estilo Excel com exportação para XLSX e CSV.</div>
+        </div>
+        <div class="sheet-tools">
+          <input type="search" id="sheet-search" placeholder="Buscar por pagante, reserva, motivo..." oninput="renderPlanilha()" style="min-width:280px;max-width:360px">
+          <button class="btn" onclick="exportarPlanilha('csv')"><i class="ti ti-file-text"></i> CSV</button>
+          <button class="btn primary" onclick="exportarPlanilha('xlsx')"><i class="ti ti-file-spreadsheet"></i> Excel</button>
+        </div>
+      </div>
+
+      <div class="sheet-summary">
+        <div class="sheet-summary-card">
+          <div class="kicker">Total</div>
+          <div class="value" id="sheet-total">0</div>
+          <div class="sub">reservas cadastradas</div>
+        </div>
+        <div class="sheet-summary-card">
+          <div class="kicker">Valor total</div>
+          <div class="value" id="sheet-valor">R$ 0,00</div>
+          <div class="sub">soma das reservas</div>
+        </div>
+        <div class="sheet-summary-card">
+          <div class="kicker">Com vendas</div>
+          <div class="value" id="sheet-vendas">0</div>
+          <div class="sub">itens marcados</div>
+        </div>
+        <div class="sheet-summary-card">
+          <div class="kicker">Perda por ausência</div>
+          <div class="value" id="sheet-perda">R$ 0,00</div>
+          <div class="sub">reservas ausentes</div>
+        </div>
+      </div>
+
+      <div class="sheet-table-wrap">
+        <table class="sheet-table">
+          <thead>
+            <tr>
+              <th>Data do pagamento</th>
+              <th class="right">Valor da reserva</th>
+              <th>Data da reserva</th>
+              <th class="center">Anexos</th>
+              <th class="center">Vendas realizadas</th>
+              <th class="right">Valor perdido por ausência</th>
+              <th>Nome do pagante</th>
+              <th>Nome da reserva</th>
+              <th>Motivo</th>
+              <th>OBS</th>
+              <th class="center">Ações</th>
+            </tr>
+          </thead>
+          <tbody id="sheet-body">
+            <tr><td colspan="11"><div class="sheet-empty">Nenhuma reserva cadastrada ainda.</div></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="screen active" id="screen-lista">
+    <div class="stat-row">
+      <div class="stat">
+        <div class="stat-label">Total de reservas</div>
+        <div class="stat-val" id="stat-total">0</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Valor arrecadado</div>
+        <div class="stat-val accent" id="stat-valor">R$ 0,00</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Confirmados</div>
+        <div class="stat-val" id="stat-conf">0</div>
+      </div>
+    </div>
+    <div id="lista-reservas">
+      <div class="empty">
+        <i class="ti ti-calendar-off"></i>
+        Nenhuma reserva ainda.<br>Clique em "Nova reserva" para começar.
+      </div>
+    </div>
+  </div>
+
+  <div class="screen" id="screen-nova">
+    <div class="card">
+      <div class="card-title"><i class="ti ti-calendar-plus"></i> Nova reserva</div>
+
+      <div class="row">
+        <div>
+          <label>Nome do pagante *</label>
+          <input type="text" id="f-pagante" placeholder="Ex: João Silva">
+        </div>
+        <div>
+          <label>Nome da reserva *</label>
+          <input type="text" id="f-reserva" placeholder="Ex: Aniversário da Maria">
+        </div>
+      </div>
+
+      <div class="row">
+        <div>
+          <label>Data da reserva *</label>
+          <input type="date" id="f-data-reserva">
+        </div>
+        <div>
+          <label>Data do pagamento *</label>
+          <input type="date" id="f-data-pagamento">
+        </div>
+      </div>
+
+      <div class="row">
+        <div>
+          <label>Valor pago (R$) *</label>
+          <input type="number" id="f-valor" placeholder="0,00" min="0" step="0.01">
+        </div>
+        <div>
+          <label>Quantidade de pessoas *</label>
+          <input type="number" id="f-pessoas" placeholder="Ex: 10" min="1">
+        </div>
+      </div>
+
+      <div class="row">
+        <div>
+          <label>Motivo</label>
+          <input type="text" id="f-motivo" placeholder="Ex: Aniversário">
+        </div>
+        <div>
+          <label>Vendas realizadas</label>
+          <select id="f-venda">
+            <option value="nao">Não</option>
+            <option value="sim">Sim</option>
+          </select>
+        </div>
+      </div>
+
+      <label>Observações</label>
+      <textarea id="f-obs" placeholder="Detalhes adicionais"></textarea>
+
+      <label>Comprovante de pagamento</label>
+      <p class="section-hint">Opcional — JPEG, PNG ou PDF</p>
+      <div class="comprovante-box" onclick="document.getElementById('f-comprovante').click()" id="comp-box">
+        <i class="ti ti-cloud-upload"></i>
+        <p>Clique para enviar foto do comprovante</p>
+      </div>
+      <input type="file" id="f-comprovante" accept="image/*" style="display:none" onchange="previewComp(this)">
+      <img id="comp-preview" class="comprovante-preview" style="display:none" alt="Pré-visualização do comprovante">
+
+      <div class="actions">
+        <button class="btn" id="cancel-edit-btn" onclick="cancelarEdicao()" style="display:none;">Cancelar edição</button>
+        <button class="btn" onclick="cancelarFormulario()">Cancelar</button>
+        <button class="btn primary" onclick="salvarReserva()" id="save-reserva-btn">
+          <i class="ti ti-device-floppy"></i> Salvar reserva
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="screen" id="screen-presenca">
+    <div class="card">
+      <div class="card-title"><i class="ti ti-user-check"></i> Confirmação de presença</div>
+      <div id="lista-presenca">
+        <div class="empty"><i class="ti ti-users"></i>Nenhuma reserva cadastrada ainda.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="screen" id="screen-alterar">
+    <div class="card">
+      <div class="card-title"><i class="ti ti-calendar-edit"></i> Alterar data da reserva</div>
+      <label>Selecionar reserva</label>
+      <select id="alt-select" onchange="preencherDataAtual()">
+        <option value="">-- Selecione uma reserva --</option>
+      </select>
+
+      <div id="alt-form" style="display:none; margin-top:1rem;">
+        <div class="row">
+          <div>
+            <label>Data atual</label>
+            <input type="text" id="alt-data-atual" disabled>
+          </div>
+          <div>
+            <label>Nova data *</label>
+            <input type="date" id="alt-nova-data">
+          </div>
+        </div>
+        <div class="actions">
+          <button class="btn primary" onclick="alterarData()">
+            <i class="ti ti-calendar-check"></i> Confirmar alteração
+          </button>
+        </div>
+      </div>
+
+      <div id="alt-empty" style="padding:2rem 0; text-align:center; color:var(--text-muted); font-size:14px;">
+        Selecione uma reserva para alterar a data.
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-img" id="modal-img" style="display:none" onclick="fecharModal()">
+  <button class="modal-img-close" onclick="fecharModal()"><i class="ti ti-x"></i></button>
+  <img id="modal-img-src" src="" alt="Comprovante">
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  let reservas = JSON.parse(localStorage.getItem('reservas') || '[]');
+  let compBase64 = null;
+  let editingReservaId = null;
+
+  function salvar() {
+    localStorage.setItem('reservas', JSON.stringify(reservas));
+  }
+
+  function fmtDate(valor) {
+    if (!valor) return '-';
+    const partes = valor.split('-');
+    if (partes.length !== 3) return valor;
+    return partes[2] + '/' + partes[1] + '/' + partes[0];
+  }
+
+  function fmtValor(valor) {
+    return 'R$ ' + Number(valor || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+  }
+
+  function escHtml(valor) {
+    return String(valor ?? '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  function showScreen(nome) {
+    document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
+    const screen = document.getElementById('screen-' + nome);
+    if (screen) screen.classList.add('active');
+    const navBtn = document.getElementById('nav-' + nome);
+    if (navBtn) navBtn.classList.add('active');
+    if (nome === 'lista') renderLista();
+    if (nome === 'planilha') renderPlanilha();
+    if (nome === 'presenca') renderPresenca();
+    if (nome === 'alterar') renderAlterar();
+  }
+
+  function abrirNovaReserva() {
+    limparForm();
+    showScreen('nova');
+  }
+
+  function previewComp(input) {
+    const file = input.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = e => {
+      compBase64 = e.target.result;
+      const preview = document.getElementById('comp-preview');
+      preview.src = compBase64;
+      preview.style.display = 'block';
+      document.getElementById('comp-box').style.display = 'none';
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function limparForm() {
+    ['f-pagante', 'f-reserva', 'f-valor', 'f-pessoas', 'f-motivo', 'f-obs'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('f-data-reserva').value = '';
+    document.getElementById('f-data-pagamento').value = '';
+    document.getElementById('f-venda').value = 'nao';
+    document.getElementById('f-comprovante').value = '';
+    document.getElementById('comp-preview').style.display = 'none';
+    document.getElementById('comp-box').style.display = 'block';
+    compBase64 = null;
+    editingReservaId = null;
+    const saveBtn = document.getElementById('save-reserva-btn');
+    const cancelEditBtn = document.getElementById('cancel-edit-btn');
+    if (saveBtn) saveBtn.innerHTML = '<i class="ti ti-device-floppy"></i> Salvar reserva';
+    if (cancelEditBtn) cancelEditBtn.style.display = 'none';
+  }
+
+  function preencherFormulario(item) {
+    document.getElementById('f-pagante').value = item.pagante || '';
+    document.getElementById('f-reserva').value = item.reserva || '';
+    document.getElementById('f-data-reserva').value = item.dataReserva || '';
+    document.getElementById('f-data-pagamento').value = item.dataPagamento || '';
+    document.getElementById('f-valor').value = item.valor ?? '';
+    document.getElementById('f-pessoas').value = item.pessoas ?? '';
+    document.getElementById('f-motivo').value = item.motivo || '';
+    document.getElementById('f-venda').value = item.vendaRealizada ? 'sim' : 'nao';
+    document.getElementById('f-obs').value = item.obs || '';
+    compBase64 = item.comprovante || null;
+
+    const preview = document.getElementById('comp-preview');
+    const box = document.getElementById('comp-box');
+    if (compBase64) {
+      preview.src = compBase64;
+      preview.style.display = 'block';
+      box.style.display = 'none';
+    } else {
+      preview.style.display = 'none';
+      box.style.display = 'block';
+    }
+
+    editingReservaId = item.id;
+    const saveBtn = document.getElementById('save-reserva-btn');
+    const cancelEditBtn = document.getElementById('cancel-edit-btn');
+    if (saveBtn) saveBtn.innerHTML = '<i class="ti ti-device-floppy"></i> Atualizar reserva';
+    if (cancelEditBtn) cancelEditBtn.style.display = 'inline-flex';
+  }
+
+  function editarReserva(id) {
+    const item = reservas.find(reserva => reserva.id === id);
+    if (!item) return;
+    preencherFormulario(item);
+    showScreen('nova');
+  }
+
+  function cancelarEdicao() {
+    limparForm();
+    showScreen('lista');
+  }
+
+  function cancelarFormulario() {
+    limparForm();
+    showScreen('lista');
+  }
+
+  function salvarReserva() {
+    const pagante = document.getElementById('f-pagante').value.trim();
+    const reserva = document.getElementById('f-reserva').value.trim();
+    const dataReserva = document.getElementById('f-data-reserva').value;
+    const dataPagamento = document.getElementById('f-data-pagamento').value;
+    const valor = parseFloat(document.getElementById('f-valor').value);
+    const pessoas = parseInt(document.getElementById('f-pessoas').value, 10);
+    const motivo = document.getElementById('f-motivo').value.trim();
+    const vendaRealizada = document.getElementById('f-venda').value === 'sim';
+    const obs = document.getElementById('f-obs').value.trim();
+
+    if (!pagante || !reserva || !dataReserva || !dataPagamento || isNaN(valor) || isNaN(pessoas)) {
+      toast('Preencha todos os campos obrigatórios (*).', 'danger');
+      return;
+    }
+
+    if (editingReservaId) {
+      const item = reservas.find(reserva => reserva.id === editingReservaId);
+      if (!item) return;
+      item.pagante = pagante;
+      item.reserva = reserva;
+      item.dataReserva = dataReserva;
+      item.dataPagamento = dataPagamento;
+      item.valor = valor;
+      item.pessoas = pessoas;
+      item.motivo = motivo;
+      item.obs = obs;
+      item.vendaRealizada = vendaRealizada;
+      item.comprovante = compBase64;
+      toast('Reserva atualizada com sucesso!');
+    } else {
+      reservas.push({
+        id: Date.now(),
+        pagante,
+        reserva,
+        dataReserva,
+        dataPagamento,
+        valor,
+        pessoas,
+        motivo,
+        obs,
+        vendaRealizada,
+        comprovante: compBase64,
+        presenca: 'pendente'
+      });
+      toast('Reserva salva com sucesso!');
+    }
+
+    salvar();
+    limparForm();
+    renderLista();
+    renderPlanilha();
+    renderPresenca();
+    renderAlterar();
+    showScreen('lista');
+  }
+
+  function renderLista() {
+    const el = document.getElementById('lista-reservas');
+    document.getElementById('stat-total').textContent = reservas.length;
+    const total = reservas.reduce((soma, item) => soma + Number(item.valor || 0), 0);
+    document.getElementById('stat-valor').textContent = fmtValor(total);
+    document.getElementById('stat-conf').textContent = reservas.filter(item => item.presenca === 'confirmado').length;
+
+    if (!reservas.length) {
+      el.innerHTML = '<div class="empty"><i class="ti ti-calendar-off"></i>Nenhuma reserva ainda.<br>Clique em "Nova reserva" para começar.</div>';
+      return;
+    }
+
+    el.innerHTML = reservas.map(item => `
+      <div class="reserva-item">
+        <div class="reserva-top">
+          <div>
+            <div class="reserva-nome">${escHtml(item.reserva)} <span class="reserva-nome-tag">— ${escHtml(item.pagante)}</span></div>
+            <div class="reserva-sub">${fmtValor(item.valor)} &nbsp;·&nbsp; ${item.pessoas} pessoa${item.pessoas > 1 ? 's' : ''}</div>
+          </div>
+          <span class="badge ${item.presenca === 'confirmado' ? 'confirmed' : item.presenca === 'ausente' ? 'absent' : 'pending'}">
+            <i class="ti ti-${item.presenca === 'confirmado' ? 'check' : item.presenca === 'ausente' ? 'x' : 'clock'}"></i>
+            ${item.presenca === 'confirmado' ? 'Confirmado' : item.presenca === 'ausente' ? 'Ausente' : 'Pendente'}
+          </span>
+        </div>
+        <div class="reserva-info">
+          <span class="info-chip"><i class="ti ti-calendar"></i> Reserva: ${fmtDate(item.dataReserva)}</span>
+          <span class="info-chip"><i class="ti ti-credit-card"></i> Pagamento: ${fmtDate(item.dataPagamento)}</span>
+          <span class="info-chip"><i class="ti ti-users"></i> ${item.pessoas} pessoa${item.pessoas > 1 ? 's' : ''}</span>
+          ${item.motivo ? `<span class="info-chip"><i class="ti ti-tag"></i> ${escHtml(item.motivo)}</span>` : ''}
+          ${item.comprovante ? '<span class="info-chip" style="color:var(--success-text)"><i class="ti ti-photo-check"></i> Comprovante anexado</span>' : ''}
+        </div>
+        <div class="reserva-actions">
+          ${item.comprovante ? `<button class="btn" onclick="verComprovante(${item.id})" style="font-size:12px;padding:5px 10px"><i class="ti ti-eye"></i> Ver comprovante</button>` : ''}
+          <button class="btn" onclick="editarReserva(${item.id})" style="font-size:12px;padding:5px 10px"><i class="ti ti-edit"></i> Editar</button>
+          <button class="btn danger" onclick="excluir(${item.id})" style="font-size:12px;padding:5px 10px"><i class="ti ti-trash"></i> Excluir</button>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  function getReservasFiltradas() {
+    const termo = (document.getElementById('sheet-search')?.value || '').trim().toLowerCase();
+    if (!termo) return reservas;
+    return reservas.filter(item => [
+      item.pagante,
+      item.reserva,
+      item.motivo,
+      item.obs,
+      fmtDate(item.dataReserva),
+      fmtDate(item.dataPagamento)
+    ].join(' ').toLowerCase().includes(termo));
+  }
+
+  function renderPlanilha() {
+    const el = document.getElementById('sheet-body');
+    if (!el) return;
+
+    const linhas = getReservasFiltradas();
+    const totalValor = linhas.reduce((soma, item) => soma + Number(item.valor || 0), 0);
+    const totalVendas = linhas.filter(item => item.vendaRealizada).length;
+    const totalPerda = linhas.reduce((soma, item) => soma + (item.presenca === 'ausente' ? Number(item.valor || 0) : 0), 0);
+
+    document.getElementById('sheet-total').textContent = linhas.length;
+    document.getElementById('sheet-valor').textContent = fmtValor(totalValor);
+    document.getElementById('sheet-vendas').textContent = totalVendas;
+    document.getElementById('sheet-perda').textContent = fmtValor(totalPerda);
+
+    if (!linhas.length) {
+      el.innerHTML = '<tr><td colspan="11"><div class="sheet-empty">Nenhuma reserva encontrada.</div></td></tr>';
+      return;
+    }
+
+    el.innerHTML = linhas.map(item => `
+      <tr>
+        <td>${fmtDate(item.dataPagamento)}</td>
+        <td class="right">${fmtValor(item.valor)}</td>
+        <td>${fmtDate(item.dataReserva)}</td>
+        <td class="center">${item.comprovante ? 'Sim' : '-'}</td>
+        <td class="center"><input type="checkbox" ${item.vendaRealizada ? 'checked' : ''} onchange="toggleVenda(${item.id}, this.checked)"></td>
+        <td class="right">${item.presenca === 'ausente' ? fmtValor(item.valor) : 'R$ 0,00'}</td>
+        <td>${escHtml(item.pagante)}</td>
+        <td>${escHtml(item.reserva)}</td>
+        <td class="muted">${escHtml(item.motivo || '-')}</td>
+        <td class="muted" title="${escHtml(item.obs || '')}">${escHtml(item.obs || '-')}</td>
+        <td>
+          <div class="actions-cell">
+            ${item.comprovante ? `<button class="btn mini-btn" onclick="verComprovante(${item.id})"><i class="ti ti-eye"></i></button>` : ''}
+            <button class="btn danger mini-btn" onclick="excluir(${item.id})"><i class="ti ti-trash"></i></button>
+          </div>
+        </td>
+      </tr>
+    `).join('');
+  }
+
+  function renderPresenca() {
+    const el = document.getElementById('lista-presenca');
+    if (!reservas.length) {
+      el.innerHTML = '<div class="empty"><i class="ti ti-users"></i>Nenhuma reserva cadastrada ainda.</div>';
+      return;
+    }
+
+    el.innerHTML = reservas.map(item => `
+      <div class="presenca-item">
+        <div>
+          <div class="presenca-name">${escHtml(item.reserva)}</div>
+          <div class="presenca-date">${escHtml(item.pagante)} &nbsp;·&nbsp; ${fmtDate(item.dataReserva)} &nbsp;·&nbsp; ${item.pessoas} pessoa${item.pessoas > 1 ? 's' : ''}</div>
+        </div>
+        <div class="presenca-btns">
+          <span class="badge ${item.presenca === 'confirmado' ? 'confirmed' : item.presenca === 'ausente' ? 'absent' : 'pending'}">
+            ${item.presenca === 'confirmado' ? 'Confirmado' : item.presenca === 'ausente' ? 'Ausente' : 'Pendente'}
+          </span>
+          <button class="btn success-btn" style="font-size:12px;padding:5px 10px" onclick="setPresenca(${item.id},'confirmado')" title="Confirmar presença"><i class="ti ti-check"></i></button>
+          <button class="btn danger" style="font-size:12px;padding:5px 10px" onclick="setPresenca(${item.id},'ausente')" title="Registrar ausência"><i class="ti ti-x"></i></button>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  function renderAlterar() {
+    const sel = document.getElementById('alt-select');
+    sel.innerHTML = '<option value="">-- Selecione uma reserva --</option>' +
+      reservas.map(item => `<option value="${item.id}">${escHtml(item.reserva)} (${fmtDate(item.dataReserva)})</option>`).join('');
+    document.getElementById('alt-form').style.display = 'none';
+    document.getElementById('alt-empty').style.display = 'block';
+  }
+
+  function preencherDataAtual() {
+    const id = parseInt(document.getElementById('alt-select').value, 10);
+    if (!id) {
+      document.getElementById('alt-form').style.display = 'none';
+      document.getElementById('alt-empty').style.display = 'block';
+      return;
+    }
+
+    const item = reservas.find(reserva => reserva.id === id);
+    if (!item) return;
+    document.getElementById('alt-data-atual').value = fmtDate(item.dataReserva);
+    document.getElementById('alt-nova-data').value = item.dataReserva;
+    document.getElementById('alt-form').style.display = 'block';
+    document.getElementById('alt-empty').style.display = 'none';
+  }
+
+  function alterarData() {
+    const id = parseInt(document.getElementById('alt-select').value, 10);
+    const novaData = document.getElementById('alt-nova-data').value;
+    if (!novaData) {
+      toast('Informe a nova data.', 'danger');
+      return;
+    }
+    const item = reservas.find(reserva => reserva.id === id);
+    if (!item) return;
+    item.dataReserva = novaData;
+    salvar();
+    renderLista();
+    renderPlanilha();
+    renderAlterar();
+    toast('Data alterada para ' + fmtDate(novaData) + '!');
+  }
+
+  function setPresenca(id, status) {
+    const item = reservas.find(reserva => reserva.id === id);
+    if (!item) return;
+    item.presenca = status;
+    salvar();
+    renderLista();
+    renderPlanilha();
+    renderPresenca();
+    toast(status === 'confirmado' ? 'Presença confirmada!' : 'Ausência registrada.');
+  }
+
+  function toggleVenda(id, checked) {
+    const item = reservas.find(reserva => reserva.id === id);
+    if (!item) return;
+    item.vendaRealizada = checked;
+    salvar();
+    renderLista();
+    renderPlanilha();
+  }
+
+  function excluir(id) {
+    if (!confirm('Excluir esta reserva?')) return;
+    reservas = reservas.filter(item => item.id !== id);
+    salvar();
+    renderLista();
+    renderPlanilha();
+    renderPresenca();
+    renderAlterar();
+    toast('Reserva excluída.');
+  }
+
+  function verComprovante(id) {
+    const item = reservas.find(reserva => reserva.id === id);
+    if (!item || !item.comprovante) return;
+    document.getElementById('modal-img-src').src = item.comprovante;
+    document.getElementById('modal-img').style.display = 'flex';
+  }
+
+  function fecharModal() {
+    document.getElementById('modal-img').style.display = 'none';
+  }
+
+  function toast(msg, type) {
+    const el = document.getElementById('toast');
+    el.textContent = (type === 'danger' ? '⚠️ ' : '✓ ') + msg;
+    el.style.borderColor = type === 'danger' ? 'var(--danger-border)' : 'var(--border-strong)';
+    el.classList.add('show');
+    setTimeout(() => el.classList.remove('show'), 3000);
+  }
+
+  function exportarPlanilha(formato) {
+    const linhas = getReservasFiltradas();
+    if (!linhas.length) {
+      toast('Nenhuma reserva para exportar.', 'danger');
+      return;
+    }
+
+    const dados = linhas.map(item => ({
+      'Data do pagamento': fmtDate(item.dataPagamento),
+      'Valor da reserva': Number(item.valor || 0),
+      'Data da reserva': fmtDate(item.dataReserva),
+      'Anexos': item.comprovante ? 'Sim' : 'Não',
+      'Vendas realizadas': item.vendaRealizada ? 'Sim' : 'Não',
+      'Valor perdido por ausência': item.presenca === 'ausente' ? Number(item.valor || 0) : 0,
+      'Nome do pagante': item.pagante || '',
+      'Nome da reserva': item.reserva || '',
+      'Motivo': item.motivo || '',
+      'OBS': item.obs || ''
+    }));
+
+    const nomeBase = 'reservas-' + new Date().toISOString().slice(0, 10);
+    if (formato === 'xlsx' && window.XLSX) {
+      const workbook = XLSX.utils.book_new();
+      const worksheet = XLSX.utils.json_to_sheet(dados);
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'Reservas');
+      XLSX.writeFile(workbook, nomeBase + '.xlsx');
+      return;
+    }
+
+    const cabecalhos = Object.keys(dados[0]);
+    const csv = [
+      cabecalhos.join(';'),
+      ...dados.map(linha => cabecalhos.map(campo => '"' + String(linha[campo] ?? '').replace(/"/g, '""') + '"').join(';'))
+    ].join('\n');
+
+    const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = nomeBase + '.csv';
+    link.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+
+  renderLista();
+  renderPlanilha();
+</script>
+</body>
+</html>
