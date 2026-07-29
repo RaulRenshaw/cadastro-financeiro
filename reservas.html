@@ -1,11 +1,11 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Controle de Reservas</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
-<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   :root {
@@ -487,14 +487,14 @@
           <div class="sub">soma das reservas</div>
         </div>
         <div class="sheet-summary-card">
-          <div class="kicker">Com vendas</div>
+          <div class="kicker">Compareceram</div>
           <div class="value" id="sheet-vendas">0</div>
-          <div class="sub">itens marcados</div>
+          <div class="sub">itens compareceram</div>
         </div>
         <div class="sheet-summary-card">
-          <div class="kicker">Perda por ausência</div>
-          <div class="value" id="sheet-perda">R$ 0,00</div>
-          <div class="sub">reservas ausentes</div>
+          <div class="kicker">Pendentes</div>
+          <div class="value" id="sheet-perda">0</div>
+          <div class="sub">ainda sem presença confirmada</div>
         </div>
       </div>
 
@@ -506,17 +506,16 @@
               <th class="right">Valor da reserva</th>
               <th>Data da reserva</th>
               <th class="center">Anexos</th>
-              <th class="center">Vendas realizadas</th>
-              <th class="right">Valor perdido por ausência</th>
+              <th class="center">Presenca confirmada</th>
               <th>Nome do pagante</th>
               <th>Nome da reserva</th>
               <th>Motivo</th>
               <th>OBS</th>
-              <th class="center">Ações</th>
+              <th class="center">Ajustes</th>
             </tr>
           </thead>
           <tbody id="sheet-body">
-            <tr><td colspan="11"><div class="sheet-empty">Nenhuma reserva cadastrada ainda.</div></td></tr>
+            <tr><td colspan="10"><div class="sheet-empty">Nenhuma reserva cadastrada ainda.</div></td></tr>
           </tbody>
         </table>
       </div>
@@ -534,7 +533,7 @@
         <div class="stat-val accent" id="stat-valor">R$ 0,00</div>
       </div>
       <div class="stat">
-        <div class="stat-label">Confirmados</div>
+        <div class="stat-label">Compareceram</div>
         <div class="stat-val" id="stat-conf">0</div>
       </div>
     </div>
@@ -589,8 +588,8 @@
           <input type="text" id="f-motivo" placeholder="Ex: Aniversário">
         </div>
         <div>
-          <label>Vendas realizadas</label>
-          <select id="f-venda">
+          <label>Presença confirmada</label>
+          <select id="f-presenca-confirmada">
             <option value="nao">Não</option>
             <option value="sim">Sim</option>
           </select>
@@ -696,6 +695,18 @@
       .replace(/"/g, '&quot;');
   }
 
+  function getPresencaEstado(item) {
+    if (item.presenca === 'compareceu' || item.presenca === 'confirmado') return 'compareceu';
+    if (item.presenca === 'nao_compareceu' || item.presenca === 'ausente') return 'nao_compareceu';
+    return 'pendente';
+  }
+
+  function isPresencaConfirmada(item) {
+    if (typeof item.presencaConfirmada === 'boolean') return item.presencaConfirmada;
+    if (typeof item.vendaRealizada === 'boolean') return item.vendaRealizada;
+    return getPresencaEstado(item) === 'compareceu';
+  }
+
   function showScreen(nome) {
     document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));
     document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
@@ -732,7 +743,7 @@
     ['f-pagante', 'f-reserva', 'f-valor', 'f-pessoas', 'f-motivo', 'f-obs'].forEach(id => document.getElementById(id).value = '');
     document.getElementById('f-data-reserva').value = '';
     document.getElementById('f-data-pagamento').value = '';
-    document.getElementById('f-venda').value = 'nao';
+    document.getElementById('f-presenca-confirmada').value = 'nao';
     document.getElementById('f-comprovante').value = '';
     document.getElementById('comp-preview').style.display = 'none';
     document.getElementById('comp-box').style.display = 'block';
@@ -752,7 +763,7 @@
     document.getElementById('f-valor').value = item.valor ?? '';
     document.getElementById('f-pessoas').value = item.pessoas ?? '';
     document.getElementById('f-motivo').value = item.motivo || '';
-    document.getElementById('f-venda').value = item.vendaRealizada ? 'sim' : 'nao';
+    document.getElementById('f-presenca-confirmada').value = isPresencaConfirmada(item) ? 'sim' : 'nao';
     document.getElementById('f-obs').value = item.obs || '';
     compBase64 = item.comprovante || null;
 
@@ -799,11 +810,11 @@
     const valor = parseFloat(document.getElementById('f-valor').value);
     const pessoas = parseInt(document.getElementById('f-pessoas').value, 10);
     const motivo = document.getElementById('f-motivo').value.trim();
-    const vendaRealizada = document.getElementById('f-venda').value === 'sim';
+    const presencaConfirmada = document.getElementById('f-presenca-confirmada').value === 'sim';
     const obs = document.getElementById('f-obs').value.trim();
 
     if (!pagante || !reserva || !dataReserva || !dataPagamento || isNaN(valor) || isNaN(pessoas)) {
-      toast('Preencha todos os campos obrigatórios (*).', 'danger');
+      toast('Preencha todos os campos obrigatÃ³rios (*).', 'danger');
       return;
     }
 
@@ -818,7 +829,8 @@
       item.pessoas = pessoas;
       item.motivo = motivo;
       item.obs = obs;
-      item.vendaRealizada = vendaRealizada;
+      item.presencaConfirmada = presencaConfirmada;
+      item.vendaRealizada = presencaConfirmada;
       item.comprovante = compBase64;
       toast('Reserva atualizada com sucesso!');
     } else {
@@ -832,7 +844,8 @@
         pessoas,
         motivo,
         obs,
-        vendaRealizada,
+        presencaConfirmada,
+        vendaRealizada: presencaConfirmada,
         comprovante: compBase64,
         presenca: 'pendente'
       });
@@ -853,10 +866,10 @@
     document.getElementById('stat-total').textContent = reservas.length;
     const total = reservas.reduce((soma, item) => soma + Number(item.valor || 0), 0);
     document.getElementById('stat-valor').textContent = fmtValor(total);
-    document.getElementById('stat-conf').textContent = reservas.filter(item => item.presenca === 'confirmado').length;
+    document.getElementById('stat-conf').textContent = reservas.filter(item => getPresencaEstado(item) === 'compareceu').length;
 
     if (!reservas.length) {
-      el.innerHTML = '<div class="empty"><i class="ti ti-calendar-off"></i>Nenhuma reserva ainda.<br>Clique em "Nova reserva" para começar.</div>';
+      el.innerHTML = '<div class="empty"><i class="ti ti-calendar-off"></i>Nenhuma reserva ainda.<br>Clique em "Nova reserva" para comeÃ§ar.</div>';
       return;
     }
 
@@ -864,12 +877,12 @@
       <div class="reserva-item">
         <div class="reserva-top">
           <div>
-            <div class="reserva-nome">${escHtml(item.reserva)} <span class="reserva-nome-tag">— ${escHtml(item.pagante)}</span></div>
+            <div class="reserva-nome">${escHtml(item.reserva)} <span class="reserva-nome-tag"> de ${escHtml(item.pagante)}</span></div>
             <div class="reserva-sub">${fmtValor(item.valor)} &nbsp;·&nbsp; ${item.pessoas} pessoa${item.pessoas > 1 ? 's' : ''}</div>
           </div>
-          <span class="badge ${item.presenca === 'confirmado' ? 'confirmed' : item.presenca === 'ausente' ? 'absent' : 'pending'}">
-            <i class="ti ti-${item.presenca === 'confirmado' ? 'check' : item.presenca === 'ausente' ? 'x' : 'clock'}"></i>
-            ${item.presenca === 'confirmado' ? 'Confirmado' : item.presenca === 'ausente' ? 'Ausente' : 'Pendente'}
+          <span class="badge ${getPresencaEstado(item) === 'compareceu' ? 'confirmed' : getPresencaEstado(item) === 'nao_compareceu' ? 'absent' : 'pending'}">
+            <i class="ti ti-${getPresencaEstado(item) === 'compareceu' ? 'check' : getPresencaEstado(item) === 'nao_compareceu' ? 'x' : 'clock'}"></i>
+            ${getPresencaEstado(item) === 'compareceu' ? 'Compareceu' : getPresencaEstado(item) === 'nao_compareceu' ? 'Não compareceu' : 'Pendente'}
           </span>
         </div>
         <div class="reserva-info">
@@ -907,16 +920,16 @@
 
     const linhas = getReservasFiltradas();
     const totalValor = linhas.reduce((soma, item) => soma + Number(item.valor || 0), 0);
-    const totalVendas = linhas.filter(item => item.vendaRealizada).length;
-    const totalPerda = linhas.reduce((soma, item) => soma + (item.presenca === 'ausente' ? Number(item.valor || 0) : 0), 0);
+    const totalVendas = linhas.filter(item => isPresencaConfirmada(item)).length;
+    const totalPendentes = linhas.filter(item => getPresencaEstado(item) === 'pendente').length;
 
     document.getElementById('sheet-total').textContent = linhas.length;
     document.getElementById('sheet-valor').textContent = fmtValor(totalValor);
     document.getElementById('sheet-vendas').textContent = totalVendas;
-    document.getElementById('sheet-perda').textContent = fmtValor(totalPerda);
+    document.getElementById('sheet-perda').textContent = totalPendentes;
 
     if (!linhas.length) {
-      el.innerHTML = '<tr><td colspan="11"><div class="sheet-empty">Nenhuma reserva encontrada.</div></td></tr>';
+      el.innerHTML = '<tr><td colspan="10"><div class="sheet-empty">Nenhuma reserva encontrada.</div></td></tr>';
       return;
     }
 
@@ -925,16 +938,14 @@
         <td>${fmtDate(item.dataPagamento)}</td>
         <td class="right">${fmtValor(item.valor)}</td>
         <td>${fmtDate(item.dataReserva)}</td>
-        <td class="center">${item.comprovante ? 'Sim' : '-'}</td>
-        <td class="center"><input type="checkbox" ${item.vendaRealizada ? 'checked' : ''} onchange="toggleVenda(${item.id}, this.checked)"></td>
-        <td class="right">${item.presenca === 'ausente' ? fmtValor(item.valor) : 'R$ 0,00'}</td>
+        <td class="center">${item.comprovante ? `<button class="btn mini-btn" onclick="verComprovante(${item.id})">Ver anexo</button>` : '-'}</td>
+        <td class="center"><input type="checkbox" ${isPresencaConfirmada(item) ? 'checked' : ''} onchange="togglePresencaConfirmada(${item.id}, this.checked)"></td>
         <td>${escHtml(item.pagante)}</td>
         <td>${escHtml(item.reserva)}</td>
         <td class="muted">${escHtml(item.motivo || '-')}</td>
         <td class="muted" title="${escHtml(item.obs || '')}">${escHtml(item.obs || '-')}</td>
         <td>
           <div class="actions-cell">
-            ${item.comprovante ? `<button class="btn mini-btn" onclick="verComprovante(${item.id})"><i class="ti ti-eye"></i></button>` : ''}
             <button class="btn danger mini-btn" onclick="excluir(${item.id})"><i class="ti ti-trash"></i></button>
           </div>
         </td>
@@ -953,14 +964,14 @@
       <div class="presenca-item">
         <div>
           <div class="presenca-name">${escHtml(item.reserva)}</div>
-          <div class="presenca-date">${escHtml(item.pagante)} &nbsp;·&nbsp; ${fmtDate(item.dataReserva)} &nbsp;·&nbsp; ${item.pessoas} pessoa${item.pessoas > 1 ? 's' : ''}</div>
+          <div class="presenca-date">${escHtml(item.pagante)} &nbsp; - &nbsp; ${fmtDate(item.dataReserva)} &nbsp; - &nbsp; ${item.pessoas} pessoa${item.pessoas > 1 ? 's' : ''}</div>
         </div>
         <div class="presenca-btns">
-          <span class="badge ${item.presenca === 'confirmado' ? 'confirmed' : item.presenca === 'ausente' ? 'absent' : 'pending'}">
-            ${item.presenca === 'confirmado' ? 'Confirmado' : item.presenca === 'ausente' ? 'Ausente' : 'Pendente'}
+          <span class="badge ${getPresencaEstado(item) === 'compareceu' ? 'confirmed' : getPresencaEstado(item) === 'nao_compareceu' ? 'absent' : 'pending'}">
+            ${getPresencaEstado(item) === 'compareceu' ? 'Compareceu' : getPresencaEstado(item) === 'nao_compareceu' ? 'Não compareceu' : 'Pendente'}
           </span>
-          <button class="btn success-btn" style="font-size:12px;padding:5px 10px" onclick="setPresenca(${item.id},'confirmado')" title="Confirmar presença"><i class="ti ti-check"></i></button>
-          <button class="btn danger" style="font-size:12px;padding:5px 10px" onclick="setPresenca(${item.id},'ausente')" title="Registrar ausência"><i class="ti ti-x"></i></button>
+          <button class="btn success-btn" style="font-size:12px;padding:5px 10px" onclick="setPresenca(${item.id},'compareceu')" title="Confirmar presença"><i class="ti ti-check"></i></button>
+          <button class="btn danger" style="font-size:12px;padding:5px 10px" onclick="setPresenca(${item.id},'nao_compareceu')" title="Registrar ausência"><i class="ti ti-x"></i></button>
         </div>
       </div>
     `).join('');
@@ -1011,20 +1022,25 @@
     const item = reservas.find(reserva => reserva.id === id);
     if (!item) return;
     item.presenca = status;
+    item.presencaConfirmada = status === 'compareceu';
+    item.vendaRealizada = item.presencaConfirmada;
     salvar();
     renderLista();
     renderPlanilha();
     renderPresenca();
-    toast(status === 'confirmado' ? 'Presença confirmada!' : 'Ausência registrada.');
+    toast(status === 'compareceu' ? 'Presença confirmada!' : 'Ausência registrada.');
   }
 
-  function toggleVenda(id, checked) {
+  function togglePresencaConfirmada(id, checked) {
     const item = reservas.find(reserva => reserva.id === id);
     if (!item) return;
+    item.presencaConfirmada = checked;
     item.vendaRealizada = checked;
+    item.presenca = checked ? 'compareceu' : 'pendente';
     salvar();
     renderLista();
     renderPlanilha();
+    renderPresenca();
   }
 
   function excluir(id) {
@@ -1035,7 +1051,7 @@
     renderPlanilha();
     renderPresenca();
     renderAlterar();
-    toast('Reserva excluída.');
+    toast('Reserva excluÃ­da.');
   }
 
   function verComprovante(id) {
@@ -1051,7 +1067,7 @@
 
   function toast(msg, type) {
     const el = document.getElementById('toast');
-    el.textContent = (type === 'danger' ? '⚠️ ' : '✓ ') + msg;
+    el.textContent = (type === 'danger' ? 'âš ï¸ ' : 'âœ“ ') + msg;
     el.style.borderColor = type === 'danger' ? 'var(--danger-border)' : 'var(--border-strong)';
     el.classList.add('show');
     setTimeout(() => el.classList.remove('show'), 3000);
@@ -1068,9 +1084,8 @@
       'Data do pagamento': fmtDate(item.dataPagamento),
       'Valor da reserva': Number(item.valor || 0),
       'Data da reserva': fmtDate(item.dataReserva),
-      'Anexos': item.comprovante ? 'Sim' : 'Não',
-      'Vendas realizadas': item.vendaRealizada ? 'Sim' : 'Não',
-      'Valor perdido por ausência': item.presenca === 'ausente' ? Number(item.valor || 0) : 0,
+      'Anexos': item.comprovante ? 'Ver anexo' : '-',
+      'Presença confirmada': isPresencaConfirmada(item) ? 'Sim' : 'Não',
       'Nome do pagante': item.pagante || '',
       'Nome da reserva': item.reserva || '',
       'Motivo': item.motivo || '',
@@ -1080,7 +1095,83 @@
     const nomeBase = 'reservas-' + new Date().toISOString().slice(0, 10);
     if (formato === 'xlsx' && window.XLSX) {
       const workbook = XLSX.utils.book_new();
-      const worksheet = XLSX.utils.json_to_sheet(dados);
+      const totalValor = linhas.reduce((soma, item) => soma + Number(item.valor || 0), 0);
+      const totalCompareceu = linhas.filter(item => isPresencaConfirmada(item)).length;
+      const cabecalhos = Object.keys(dados[0]);
+      const aoa = [
+        ['CONTROLE DE RESERVAS'],
+        [],
+        ['Total de reservas', linhas.length, '', 'Valor total', fmtValor(totalValor), '', 'Compareceram', totalCompareceu, ''],
+        [],
+        cabecalhos,
+        ...dados.map(item => cabecalhos.map(chave => item[chave]))
+      ];
+      const worksheet = XLSX.utils.aoa_to_sheet(aoa);
+      worksheet['!merges'] = [
+        { s: { r: 0, c: 0 }, e: { r: 0, c: cabecalhos.length - 1 } },
+        { s: { r: 2, c: 0 }, e: { r: 3, c: 1 } },
+        { s: { r: 2, c: 3 }, e: { r: 3, c: 4 } },
+        { s: { r: 2, c: 6 }, e: { r: 3, c: 7 } }
+      ];
+      worksheet['!cols'] = [
+        { wch: 16 }, { wch: 15 }, { wch: 16 }, { wch: 14 }, { wch: 18 },
+        { wch: 20 }, { wch: 20 }, { wch: 18 }, { wch: 24 }
+      ];
+      worksheet['!autofilter'] = { ref: `A5:I${aoa.length}` };
+      worksheet['!rows'] = [{ hpt: 24 }, { hpt: 6 }, { hpt: 28 }, { hpt: 6 }, { hpt: 22 }];
+
+      const styles = {
+        title: {
+          font: { bold: true, color: { rgb: 'FFFFFF' }, sz: 14 },
+          fill: { patternType: 'solid', fgColor: { rgb: '111111' } },
+          alignment: { horizontal: 'center', vertical: 'center' }
+        },
+        summaryLabel: {
+          font: { bold: true, color: { rgb: 'D1D5DB' }, sz: 10 },
+          fill: { patternType: 'solid', fgColor: { rgb: '1F2937' } },
+          alignment: { horizontal: 'left', vertical: 'center' },
+          border: { top: { style: 'thin', color: { rgb: '374151' } }, bottom: { style: 'thin', color: { rgb: '374151' } }, left: { style: 'thin', color: { rgb: '374151' } }, right: { style: 'thin', color: { rgb: '374151' } } }
+        },
+        summaryValue: {
+          font: { bold: true, color: { rgb: 'FFFFFF' }, sz: 12 },
+          fill: { patternType: 'solid', fgColor: { rgb: '1D4ED8' } },
+          alignment: { horizontal: 'left', vertical: 'center' },
+          border: { top: { style: 'thin', color: { rgb: '374151' } }, bottom: { style: 'thin', color: { rgb: '374151' } }, left: { style: 'thin', color: { rgb: '374151' } }, right: { style: 'thin', color: { rgb: '374151' } } }
+        },
+        header: {
+          font: { bold: true, color: { rgb: 'FFFFFF' }, sz: 10 },
+          fill: { patternType: 'solid', fgColor: { rgb: '3B82F6' } },
+          alignment: { horizontal: 'center', vertical: 'center' },
+          border: { top: { style: 'thin', color: { rgb: 'BFDBFE' } }, bottom: { style: 'thin', color: { rgb: 'BFDBFE' } }, left: { style: 'thin', color: { rgb: 'BFDBFE' } }, right: { style: 'thin', color: { rgb: 'BFDBFE' } } }
+        },
+        body: {
+          font: { color: { rgb: '111111' }, sz: 10 },
+          fill: { patternType: 'solid', fgColor: { rgb: 'FFFFFF' } },
+          alignment: { vertical: 'center' },
+          border: { top: { style: 'thin', color: { rgb: 'D1D5DB' } }, bottom: { style: 'thin', color: { rgb: 'D1D5DB' } }, left: { style: 'thin', color: { rgb: 'D1D5DB' } }, right: { style: 'thin', color: { rgb: 'D1D5DB' } } }
+        },
+        altBody: {
+          font: { color: { rgb: '111111' }, sz: 10 },
+          fill: { patternType: 'solid', fgColor: { rgb: 'F3F4F6' } },
+          alignment: { vertical: 'center' },
+          border: { top: { style: 'thin', color: { rgb: 'D1D5DB' } }, bottom: { style: 'thin', color: { rgb: 'D1D5DB' } }, left: { style: 'thin', color: { rgb: 'D1D5DB' } }, right: { style: 'thin', color: { rgb: 'D1D5DB' } } }
+        }
+      };
+
+      Object.keys(worksheet).forEach(cell => {
+        if (cell[0] === '!') return;
+        const pos = XLSX.utils.decode_cell(cell);
+        if (pos.r === 0) {
+          worksheet[cell].s = styles.title;
+        } else if (pos.r === 2) {
+          worksheet[cell].s = [0, 3, 6].includes(pos.c) ? styles.summaryLabel : styles.summaryValue;
+        } else if (pos.r === 4) {
+          worksheet[cell].s = styles.header;
+        } else if (pos.r > 4) {
+          worksheet[cell].s = ((pos.r - 5) % 2 === 0) ? styles.body : styles.altBody;
+        }
+      });
+
       XLSX.utils.book_append_sheet(workbook, worksheet, 'Reservas');
       XLSX.writeFile(workbook, nomeBase + '.xlsx');
       return;
