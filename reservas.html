@@ -3,7 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Controle de Reservas</title>
+<title>KURO / SHIRO — Painel de Reservas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
 <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
 <style>
@@ -217,6 +220,7 @@
   .badge.confirmed { background: var(--success-bg); color: var(--success-text); border: 0.5px solid var(--success-border); }
   .badge.pending { background: var(--warning-bg); color: var(--warning-text); border: 0.5px solid var(--warning-border); }
   .badge.absent { background: var(--danger-bg); color: var(--danger-text); border: 0.5px solid var(--danger-border); }
+  .badge.cancelled { background: #e7e5e4; color: #57534e; border: 0.5px solid #d6d3d1; }
   .reserva-item {
     background: var(--surface);
     border: 0.5px solid var(--border);
@@ -375,7 +379,7 @@
   }
   .sheet-table {
     width: 100%;
-    min-width: 1260px;
+    min-width: 1480px;
     border-collapse: collapse;
     font-size: 12px;
   }
@@ -416,6 +420,354 @@
     min-height: calc(100vh - 230px);
     display: flex;
     flex-direction: column;
+  }
+  /* KURO / SHIRO visual system */
+  :root {
+    --paper: #FAF7F1;
+    --paper-dim: #F1ECE2;
+    --ink: #111011;
+    --ink-soft: #1C1A1B;
+    --red: #9E1B1B;
+    --red-bright: #C22B2B;
+    --red-deep: #6E1212;
+    --stone: #8C8579;
+    --stone-light: #B9B2A5;
+    --hairline: rgba(17,16,17,0.10);
+    --hairline-dark: rgba(250,247,241,0.09);
+    --surface: #FFFFFF;
+    --surface-alt: #F7F3EB;
+    --border: rgba(17,16,17,0.10);
+    --border-strong: rgba(17,16,17,0.18);
+    --text: #111011;
+    --text-secondary: #4F4B45;
+    --text-muted: #7A746B;
+    --accent: var(--red);
+    --accent-bg: rgba(158,27,27,0.08);
+    --accent-border: rgba(158,27,27,0.18);
+    --success-bg: rgba(59,109,17,0.10);
+    --success-text: #3B6D11;
+    --success-border: rgba(59,109,17,0.20);
+    --danger-bg: rgba(158,27,27,0.08);
+    --danger-text: var(--red-deep);
+    --danger-border: rgba(158,27,27,0.20);
+    --warning-bg: rgba(140,133,121,0.10);
+    --warning-text: #6D665B;
+    --warning-border: rgba(140,133,121,0.18);
+  }
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    line-height: 1.45;
+  }
+  .app-shell {
+    display: grid;
+    grid-template-columns: 248px minmax(0, 1fr);
+    min-height: 100vh;
+  }
+  .sidebar {
+    background: var(--ink);
+    color: var(--paper);
+    padding: 28px 22px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    position: sticky;
+    top: 0;
+    min-height: 100vh;
+  }
+  .brand-mark {
+    padding-bottom: 22px;
+    border-bottom: 1px solid var(--hairline-dark);
+  }
+  .brand-logo {
+    width: 118px;
+    max-width: 100%;
+    height: auto;
+    display: block;
+    background: #fff;
+    border-radius: 8px;
+    padding: 10px;
+    margin-bottom: 12px;
+  }
+  .kanji-stamp {
+    width: 46px;
+    height: 46px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--red);
+    color: var(--paper);
+    border-radius: 3px;
+    font-family: 'Shippori Mincho', serif;
+    font-size: 26px;
+    margin-bottom: 12px;
+    filter: url(#hanko-rough);
+  }
+  .brand-name {
+    font-family: 'Shippori Mincho', serif;
+    font-size: 20px;
+    letter-spacing: 0.14em;
+    margin: 0;
+  }
+  .brand-sub {
+    font-size: 10px;
+    letter-spacing: 0.22em;
+    color: var(--stone-light);
+    text-transform: uppercase;
+    margin: 4px 0 0;
+  }
+  .sidebar-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    flex: 1;
+  }
+  .sidebar .nav-btn,
+  .sidebar .nav-btn:hover,
+  .sidebar .nav-btn.active {
+    justify-content: flex-start;
+    border-radius: 4px;
+    padding: 11px 12px;
+    min-width: 0;
+    width: 100%;
+    border: 0;
+    background: transparent;
+    color: var(--stone-light);
+    font-size: 13px;
+    letter-spacing: 0.02em;
+  }
+  .sidebar .nav-btn:hover { background: rgba(250,247,241,0.04); color: var(--paper); }
+  .sidebar .nav-btn.active { background: rgba(158,27,27,0.16); color: var(--paper); }
+  .sidebar .nav-btn .dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: currentColor;
+    opacity: .5;
+    flex: 0 0 auto;
+  }
+  .sidebar .nav-btn.active .dot { opacity: 1; background: var(--red); }
+  .sidebar-foot {
+    padding-top: 18px;
+    border-top: 1px solid var(--hairline-dark);
+    font-size: 11px;
+    color: var(--stone);
+    letter-spacing: 0.05em;
+  }
+  .sidebar-foot b { color: var(--stone-light); font-weight: 500; }
+  .main {
+    min-width: 0;
+    padding: 24px 28px 32px;
+  }
+  .topbar {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    margin: 0 0 18px;
+    padding: 12px 0 18px;
+    background: linear-gradient(180deg, rgba(250,247,241,0.98) 0%, rgba(250,247,241,0.92) 70%, rgba(250,247,241,0) 100%);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid rgba(17,16,17,0.06);
+  }
+  .topbar-kicker {
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--stone);
+    margin-bottom: 3px;
+  }
+  .topbar-brand {
+    font-family: 'Shippori Mincho', serif;
+    font-size: 24px;
+    font-weight: 600;
+    color: var(--ink);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .topbar-brand i { color: var(--red); font-size: 20px; }
+  .topbar-date {
+    font-size: 12.5px;
+    color: var(--stone);
+    margin-top: 4px;
+  }
+  .topbar-actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+  }
+  .topbar-actions .btn {
+    background: rgba(255,255,255,0.8);
+    border-color: rgba(17,16,17,0.16);
+    border-radius: 6px;
+  }
+  .topbar-actions .btn.primary {
+    background: var(--red);
+    color: var(--paper);
+    border-color: var(--red);
+  }
+  .main-body { max-width: 1280px; }
+  .screen { display: none; }
+  .screen.active { display: block; }
+  .card,
+  .sheet-summary-card,
+  .stat,
+  .reserva-item,
+  .sheet-table-wrap,
+  .comprovante-box {
+    border-radius: 6px;
+    background: var(--surface);
+    border: 1px solid var(--hairline);
+    box-shadow: none;
+  }
+  .card { padding: 18px 22px; }
+  .card-title {
+    font-family: 'Shippori Mincho', serif;
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--ink);
+    margin-bottom: 16px;
+  }
+  .card-title i { color: var(--red); }
+  .stat-row {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 16px;
+    margin-bottom: 22px;
+  }
+  .stat {
+    padding: 18px 20px;
+    background: var(--surface);
+    border: 1px solid var(--hairline);
+  }
+  .stat-label,
+  .sheet-summary-card .kicker {
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--stone);
+  }
+  .stat-val {
+    font-family: 'Shippori Mincho', serif;
+    font-size: 28px;
+    color: var(--ink);
+  }
+  .stat-val.accent { color: var(--red); }
+  .sheet-toolbar {
+    gap: 16px;
+    margin-bottom: 18px;
+    align-items: center;
+  }
+  .sheet-tools { gap: 10px; }
+  .sheet-tools .btn,
+  .actions .btn,
+  .reserva-actions .btn {
+    border-radius: 6px;
+  }
+  .btn {
+    border: 1px solid var(--hairline);
+    background: #fff;
+    color: var(--ink);
+  }
+  .btn.primary {
+    background: var(--red);
+    border-color: var(--red);
+    color: var(--paper);
+  }
+  .btn.success-btn {
+    background: rgba(59,109,17,0.10);
+    color: var(--success-text);
+    border-color: rgba(59,109,17,0.20);
+  }
+  .btn.danger {
+    background: rgba(158,27,27,0.08);
+    color: var(--red-deep);
+    border-color: rgba(158,27,27,0.18);
+  }
+  .badge {
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+  .badge.confirmed { color: var(--red-deep); background: rgba(158,27,27,0.08); border-color: rgba(158,27,27,0.16); }
+  .badge.pending { color: var(--stone); background: rgba(140,133,121,0.10); border-color: rgba(140,133,121,0.18); }
+  .badge.absent { color: var(--red-deep); background: rgba(158,27,27,0.08); border-color: rgba(158,27,27,0.18); }
+  .badge.cancelled { color: var(--stone); background: rgba(140,133,121,0.10); border-color: rgba(140,133,121,0.18); }
+  #lista-reservas { display: flex; flex-direction: column; gap: 12px; }
+  .reserva-item { padding: 16px 18px; margin-bottom: 0; }
+  .reserva-nome, .presenca-name { font-family: 'Shippori Mincho', serif; font-size: 18px; }
+  .reserva-nome-tag { color: var(--stone); }
+  .reserva-sub, .reserva-info, .presenca-date, .section-hint { color: var(--stone); }
+  .info-chip { color: var(--text-secondary); }
+  .sheet-summary {
+    gap: 12px;
+    margin-bottom: 18px;
+  }
+  .sheet-summary-card {
+    padding: 16px 18px;
+    background: #fff;
+    border: 1px solid var(--hairline);
+  }
+  .sheet-summary-card .value {
+    font-family: 'Shippori Mincho', serif;
+    font-size: 26px;
+    color: var(--ink);
+  }
+  .sheet-summary-card .sub { color: var(--stone); }
+  .sheet-table-wrap {
+    background: #fff;
+    border: 1px solid var(--hairline);
+    border-radius: 6px;
+    overflow: auto;
+    max-height: none;
+    min-height: 520px;
+  }
+  .sheet-table {
+    min-width: 1480px;
+  }
+  .sheet-table thead th {
+    background: var(--paper-dim);
+    color: var(--stone);
+    text-transform: uppercase;
+    font-size: 10.5px;
+    letter-spacing: 0.09em;
+    border-color: var(--hairline);
+  }
+  .sheet-table tbody td {
+    border-color: var(--hairline);
+    color: var(--ink);
+  }
+  .sheet-table tbody tr:nth-child(even) td { background: #f8f6f0; }
+  .sheet-table tbody tr:hover td { background: rgba(158,27,27,0.04); }
+  .sheet-table .mini-btn {
+    border-radius: 5px;
+    font-size: 11px;
+    padding: 4px 8px;
+  }
+  .empty, .sheet-empty {
+    color: var(--stone);
+  }
+  .comprovante-box:hover {
+    border-color: var(--red);
+    background: rgba(158,27,27,0.04);
+  }
+  @media (max-width: 980px) {
+    .app-shell { grid-template-columns: 1fr; }
+    .sidebar {
+      position: relative;
+      min-height: auto;
+    }
+    .main { padding: 18px 14px 24px; }
+    .topbar { flex-direction: column; align-items: flex-start; }
+    .stat-row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+  @media (max-width: 600px) {
+    .stat-row { grid-template-columns: 1fr; }
   }
   @media (max-width: 600px) {
     .row { grid-template-columns: 1fr; }
@@ -492,9 +844,9 @@
           <div class="sub">itens compareceram</div>
         </div>
         <div class="sheet-summary-card">
-          <div class="kicker">Pendentes</div>
-          <div class="value" id="sheet-perda">0</div>
-          <div class="sub">ainda sem presença confirmada</div>
+          <div class="kicker">Canceladas</div>
+          <div class="value" id="sheet-canceladas">0</div>
+          <div class="sub">reservas marcadas como canceladas</div>
         </div>
       </div>
 
@@ -506,7 +858,11 @@
               <th class="right">Valor da reserva</th>
               <th>Data da reserva</th>
               <th class="center">Anexos</th>
-              <th class="center">Presenca confirmada</th>
+              <th class="center">Val. pagamento</th>
+              <th class="center">Val. reserva</th>
+              <th class="center">Presença confirmada</th>
+              <th class="center">Cancelada</th>
+              <th>Local</th>
               <th>Nome do pagante</th>
               <th>Nome da reserva</th>
               <th>Motivo</th>
@@ -515,7 +871,7 @@
             </tr>
           </thead>
           <tbody id="sheet-body">
-            <tr><td colspan="10"><div class="sheet-empty">Nenhuma reserva cadastrada ainda.</div></td></tr>
+            <tr><td colspan="14"><div class="sheet-empty">Nenhuma reserva cadastrada ainda.</div></td></tr>
           </tbody>
         </table>
       </div>
@@ -535,6 +891,10 @@
       <div class="stat">
         <div class="stat-label">Compareceram</div>
         <div class="stat-val" id="stat-conf">0</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">No-show</div>
+        <div class="stat-val" id="stat-noshow">0</div>
       </div>
     </div>
     <div id="lista-reservas">
@@ -588,8 +948,26 @@
           <input type="text" id="f-motivo" placeholder="Ex: Aniversário">
         </div>
         <div>
+          <label>Local da reserva</label>
+          <select id="f-local">
+            <option value="kuro">Kuro</option>
+            <option value="shiro">Shiro</option>
+            <option value="ambos">Os dois</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="row">
+        <div>
           <label>Presença confirmada</label>
           <select id="f-presenca-confirmada">
+            <option value="nao">Não</option>
+            <option value="sim">Sim</option>
+          </select>
+        </div>
+        <div>
+          <label>Reserva cancelada</label>
+          <select id="f-cancelada">
             <option value="nao">Não</option>
             <option value="sim">Sim</option>
           </select>
@@ -696,15 +1074,28 @@
   }
 
   function getPresencaEstado(item) {
+    if (isCancelada(item)) return 'cancelada';
     if (item.presenca === 'compareceu' || item.presenca === 'confirmado') return 'compareceu';
     if (item.presenca === 'nao_compareceu' || item.presenca === 'ausente') return 'nao_compareceu';
     return 'pendente';
   }
 
+  function isCancelada(item) {
+    return item.cancelada === true || item.presenca === 'cancelada';
+  }
+
   function isPresencaConfirmada(item) {
+    if (isCancelada(item)) return false;
     if (typeof item.presencaConfirmada === 'boolean') return item.presencaConfirmada;
     if (typeof item.vendaRealizada === 'boolean') return item.vendaRealizada;
     return getPresencaEstado(item) === 'compareceu';
+  }
+
+  function getLocalLabel(item) {
+    const local = item.localReserva || 'ambos';
+    if (local === 'kuro') return 'Kuro';
+    if (local === 'shiro') return 'Shiro';
+    return 'Os dois';
   }
 
   function showScreen(nome) {
@@ -743,7 +1134,9 @@
     ['f-pagante', 'f-reserva', 'f-valor', 'f-pessoas', 'f-motivo', 'f-obs'].forEach(id => document.getElementById(id).value = '');
     document.getElementById('f-data-reserva').value = '';
     document.getElementById('f-data-pagamento').value = '';
+    document.getElementById('f-local').value = 'ambos';
     document.getElementById('f-presenca-confirmada').value = 'nao';
+    document.getElementById('f-cancelada').value = 'nao';
     document.getElementById('f-comprovante').value = '';
     document.getElementById('comp-preview').style.display = 'none';
     document.getElementById('comp-box').style.display = 'block';
@@ -763,7 +1156,9 @@
     document.getElementById('f-valor').value = item.valor ?? '';
     document.getElementById('f-pessoas').value = item.pessoas ?? '';
     document.getElementById('f-motivo').value = item.motivo || '';
+    document.getElementById('f-local').value = item.localReserva || 'ambos';
     document.getElementById('f-presenca-confirmada').value = isPresencaConfirmada(item) ? 'sim' : 'nao';
+    document.getElementById('f-cancelada').value = isCancelada(item) ? 'sim' : 'nao';
     document.getElementById('f-obs').value = item.obs || '';
     compBase64 = item.comprovante || null;
 
@@ -810,7 +1205,9 @@
     const valor = parseFloat(document.getElementById('f-valor').value);
     const pessoas = parseInt(document.getElementById('f-pessoas').value, 10);
     const motivo = document.getElementById('f-motivo').value.trim();
+    const localReserva = document.getElementById('f-local').value;
     const presencaConfirmada = document.getElementById('f-presenca-confirmada').value === 'sim';
+    const cancelada = document.getElementById('f-cancelada').value === 'sim';
     const obs = document.getElementById('f-obs').value.trim();
 
     if (!pagante || !reserva || !dataReserva || !dataPagamento || isNaN(valor) || isNaN(pessoas)) {
@@ -828,9 +1225,12 @@
       item.valor = valor;
       item.pessoas = pessoas;
       item.motivo = motivo;
+      item.localReserva = localReserva;
       item.obs = obs;
-      item.presencaConfirmada = presencaConfirmada;
-      item.vendaRealizada = presencaConfirmada;
+      item.cancelada = cancelada;
+      item.presencaConfirmada = cancelada ? false : presencaConfirmada;
+      item.vendaRealizada = cancelada ? false : presencaConfirmada;
+      item.presenca = cancelada ? 'cancelada' : (presencaConfirmada ? 'compareceu' : 'pendente');
       item.comprovante = compBase64;
       toast('Reserva atualizada com sucesso!');
     } else {
@@ -843,11 +1243,13 @@
         valor,
         pessoas,
         motivo,
+        localReserva,
         obs,
-        presencaConfirmada,
-        vendaRealizada: presencaConfirmada,
+        cancelada,
+        presencaConfirmada: cancelada ? false : presencaConfirmada,
+        vendaRealizada: cancelada ? false : presencaConfirmada,
         comprovante: compBase64,
-        presenca: 'pendente'
+        presenca: cancelada ? 'cancelada' : (presencaConfirmada ? 'compareceu' : 'pendente')
       });
       toast('Reserva salva com sucesso!');
     }
@@ -867,6 +1269,7 @@
     const total = reservas.reduce((soma, item) => soma + Number(item.valor || 0), 0);
     document.getElementById('stat-valor').textContent = fmtValor(total);
     document.getElementById('stat-conf').textContent = reservas.filter(item => getPresencaEstado(item) === 'compareceu').length;
+    document.getElementById('stat-noshow').textContent = reservas.filter(item => getPresencaEstado(item) === 'nao_compareceu').length;
 
     if (!reservas.length) {
       el.innerHTML = '<div class="empty"><i class="ti ti-calendar-off"></i>Nenhuma reserva ainda.<br>Clique em "Nova reserva" para comeÃ§ar.</div>';
@@ -880,21 +1283,23 @@
             <div class="reserva-nome">${escHtml(item.reserva)} <span class="reserva-nome-tag"> de ${escHtml(item.pagante)}</span></div>
             <div class="reserva-sub">${fmtValor(item.valor)} &nbsp;·&nbsp; ${item.pessoas} pessoa${item.pessoas > 1 ? 's' : ''}</div>
           </div>
-          <span class="badge ${getPresencaEstado(item) === 'compareceu' ? 'confirmed' : getPresencaEstado(item) === 'nao_compareceu' ? 'absent' : 'pending'}">
-            <i class="ti ti-${getPresencaEstado(item) === 'compareceu' ? 'check' : getPresencaEstado(item) === 'nao_compareceu' ? 'x' : 'clock'}"></i>
-            ${getPresencaEstado(item) === 'compareceu' ? 'Compareceu' : getPresencaEstado(item) === 'nao_compareceu' ? 'Não compareceu' : 'Pendente'}
+          <span class="badge ${getPresencaEstado(item) === 'compareceu' ? 'confirmed' : getPresencaEstado(item) === 'nao_compareceu' ? 'absent' : getPresencaEstado(item) === 'cancelada' ? 'cancelled' : 'pending'}">
+            <i class="ti ti-${getPresencaEstado(item) === 'compareceu' ? 'check' : getPresencaEstado(item) === 'nao_compareceu' ? 'x' : getPresencaEstado(item) === 'cancelada' ? 'ban' : 'clock'}"></i>
+            ${getPresencaEstado(item) === 'compareceu' ? 'Compareceu' : getPresencaEstado(item) === 'nao_compareceu' ? 'Não compareceu' : getPresencaEstado(item) === 'cancelada' ? 'Cancelada' : 'Pendente'}
           </span>
         </div>
         <div class="reserva-info">
           <span class="info-chip"><i class="ti ti-calendar"></i> Reserva: ${fmtDate(item.dataReserva)}</span>
           <span class="info-chip"><i class="ti ti-credit-card"></i> Pagamento: ${fmtDate(item.dataPagamento)}</span>
           <span class="info-chip"><i class="ti ti-users"></i> ${item.pessoas} pessoa${item.pessoas > 1 ? 's' : ''}</span>
+          <span class="info-chip"><i class="ti ti-map-pin"></i> ${escHtml(getLocalLabel(item))}</span>
           ${item.motivo ? `<span class="info-chip"><i class="ti ti-tag"></i> ${escHtml(item.motivo)}</span>` : ''}
           ${item.comprovante ? '<span class="info-chip" style="color:var(--success-text)"><i class="ti ti-photo-check"></i> Comprovante anexado</span>' : ''}
         </div>
         <div class="reserva-actions">
           ${item.comprovante ? `<button class="btn" onclick="verComprovante(${item.id})" style="font-size:12px;padding:5px 10px"><i class="ti ti-eye"></i> Ver comprovante</button>` : ''}
           <button class="btn" onclick="editarReserva(${item.id})" style="font-size:12px;padding:5px 10px"><i class="ti ti-edit"></i> Editar</button>
+          ${!isCancelada(item) ? `<button class="btn" onclick="cancelarReserva(${item.id})" style="font-size:12px;padding:5px 10px"><i class="ti ti-ban"></i> Cancelar</button>` : ''}
           <button class="btn danger" onclick="excluir(${item.id})" style="font-size:12px;padding:5px 10px"><i class="ti ti-trash"></i> Excluir</button>
         </div>
       </div>
@@ -909,6 +1314,8 @@
       item.reserva,
       item.motivo,
       item.obs,
+      getLocalLabel(item),
+      isCancelada(item) ? 'cancelada' : '',
       fmtDate(item.dataReserva),
       fmtDate(item.dataPagamento)
     ].join(' ').toLowerCase().includes(termo));
@@ -921,15 +1328,15 @@
     const linhas = getReservasFiltradas();
     const totalValor = linhas.reduce((soma, item) => soma + Number(item.valor || 0), 0);
     const totalVendas = linhas.filter(item => isPresencaConfirmada(item)).length;
-    const totalPendentes = linhas.filter(item => getPresencaEstado(item) === 'pendente').length;
+    const totalCanceladas = linhas.filter(item => isCancelada(item)).length;
 
     document.getElementById('sheet-total').textContent = linhas.length;
     document.getElementById('sheet-valor').textContent = fmtValor(totalValor);
     document.getElementById('sheet-vendas').textContent = totalVendas;
-    document.getElementById('sheet-perda').textContent = totalPendentes;
+    document.getElementById('sheet-canceladas').textContent = totalCanceladas;
 
     if (!linhas.length) {
-      el.innerHTML = '<tr><td colspan="10"><div class="sheet-empty">Nenhuma reserva encontrada.</div></td></tr>';
+      el.innerHTML = '<tr><td colspan="14"><div class="sheet-empty">Nenhuma reserva encontrada.</div></td></tr>';
       return;
     }
 
@@ -939,13 +1346,19 @@
         <td class="right">${fmtValor(item.valor)}</td>
         <td>${fmtDate(item.dataReserva)}</td>
         <td class="center">${item.comprovante ? `<button class="btn mini-btn" onclick="verComprovante(${item.id})">Ver anexo</button>` : '-'}</td>
-        <td class="center"><input type="checkbox" ${isPresencaConfirmada(item) ? 'checked' : ''} onchange="togglePresencaConfirmada(${item.id}, this.checked)"></td>
+        <td class="center"><input type="checkbox" ${!!item.dataPagamento ? 'checked' : ''} disabled></td>
+        <td class="center"><input type="checkbox" ${!!item.dataReserva ? 'checked' : ''} disabled></td>
+        <td class="center"><input type="checkbox" ${isPresencaConfirmada(item) ? 'checked' : ''} onchange="togglePresencaConfirmada(${item.id}, this.checked)" ${isCancelada(item) ? 'disabled' : ''}></td>
+        <td class="center"><input type="checkbox" ${isCancelada(item) ? 'checked' : ''} onchange="toggleCancelada(${item.id}, this.checked)"></td>
+        <td>${escHtml(getLocalLabel(item))}</td>
         <td>${escHtml(item.pagante)}</td>
         <td>${escHtml(item.reserva)}</td>
         <td class="muted">${escHtml(item.motivo || '-')}</td>
         <td class="muted" title="${escHtml(item.obs || '')}">${escHtml(item.obs || '-')}</td>
         <td>
           <div class="actions-cell">
+            <button class="btn mini-btn" onclick="editarReserva(${item.id})"><i class="ti ti-edit"></i></button>
+            ${!isCancelada(item) ? `<button class="btn mini-btn" onclick="cancelarReserva(${item.id})"><i class="ti ti-ban"></i></button>` : ''}
             <button class="btn danger mini-btn" onclick="excluir(${item.id})"><i class="ti ti-trash"></i></button>
           </div>
         </td>
@@ -967,11 +1380,11 @@
           <div class="presenca-date">${escHtml(item.pagante)} &nbsp; - &nbsp; ${fmtDate(item.dataReserva)} &nbsp; - &nbsp; ${item.pessoas} pessoa${item.pessoas > 1 ? 's' : ''}</div>
         </div>
         <div class="presenca-btns">
-          <span class="badge ${getPresencaEstado(item) === 'compareceu' ? 'confirmed' : getPresencaEstado(item) === 'nao_compareceu' ? 'absent' : 'pending'}">
-            ${getPresencaEstado(item) === 'compareceu' ? 'Compareceu' : getPresencaEstado(item) === 'nao_compareceu' ? 'Não compareceu' : 'Pendente'}
+          <span class="badge ${getPresencaEstado(item) === 'compareceu' ? 'confirmed' : getPresencaEstado(item) === 'nao_compareceu' ? 'absent' : getPresencaEstado(item) === 'cancelada' ? 'cancelled' : 'pending'}">
+            ${getPresencaEstado(item) === 'compareceu' ? 'Compareceu' : getPresencaEstado(item) === 'nao_compareceu' ? 'Não compareceu' : getPresencaEstado(item) === 'cancelada' ? 'Cancelada' : 'Pendente'}
           </span>
-          <button class="btn success-btn" style="font-size:12px;padding:5px 10px" onclick="setPresenca(${item.id},'compareceu')" title="Confirmar presença"><i class="ti ti-check"></i></button>
-          <button class="btn danger" style="font-size:12px;padding:5px 10px" onclick="setPresenca(${item.id},'nao_compareceu')" title="Registrar ausência"><i class="ti ti-x"></i></button>
+          ${!isCancelada(item) ? `<button class="btn success-btn" style="font-size:12px;padding:5px 10px" onclick="setPresenca(${item.id},'compareceu')" title="Confirmar presença"><i class="ti ti-check"></i></button>` : ''}
+          ${!isCancelada(item) ? `<button class="btn danger" style="font-size:12px;padding:5px 10px" onclick="setPresenca(${item.id},'nao_compareceu')" title="Registrar ausência"><i class="ti ti-x"></i></button>` : ''}
         </div>
       </div>
     `).join('');
@@ -1021,6 +1434,7 @@
   function setPresenca(id, status) {
     const item = reservas.find(reserva => reserva.id === id);
     if (!item) return;
+    item.cancelada = false;
     item.presenca = status;
     item.presencaConfirmada = status === 'compareceu';
     item.vendaRealizada = item.presencaConfirmada;
@@ -1034,6 +1448,7 @@
   function togglePresencaConfirmada(id, checked) {
     const item = reservas.find(reserva => reserva.id === id);
     if (!item) return;
+    item.cancelada = false;
     item.presencaConfirmada = checked;
     item.vendaRealizada = checked;
     item.presenca = checked ? 'compareceu' : 'pendente';
@@ -1052,6 +1467,40 @@
     renderPresenca();
     renderAlterar();
     toast('Reserva excluÃ­da.');
+  }
+
+  function cancelarReserva(id) {
+    const item = reservas.find(reserva => reserva.id === id);
+    if (!item) return;
+    item.cancelada = true;
+    item.presenca = 'cancelada';
+    item.presencaConfirmada = false;
+    item.vendaRealizada = false;
+    salvar();
+    renderLista();
+    renderPlanilha();
+    renderPresenca();
+    renderAlterar();
+    toast('Reserva marcada como cancelada.');
+  }
+
+  function toggleCancelada(id, checked) {
+    const item = reservas.find(reserva => reserva.id === id);
+    if (!item) return;
+    if (checked) {
+      cancelarReserva(id);
+      return;
+    }
+    item.cancelada = false;
+    item.presenca = 'pendente';
+    item.presencaConfirmada = false;
+    item.vendaRealizada = false;
+    salvar();
+    renderLista();
+    renderPlanilha();
+    renderPresenca();
+    renderAlterar();
+    toast('Cancelamento removido.');
   }
 
   function verComprovante(id) {
@@ -1085,7 +1534,11 @@
       'Valor da reserva': Number(item.valor || 0),
       'Data da reserva': fmtDate(item.dataReserva),
       'Anexos': item.comprovante ? 'Ver anexo' : '-',
+      'Validação pagamento': item.dataPagamento ? 'Sim' : 'Não',
+      'Validação reserva': item.dataReserva ? 'Sim' : 'Não',
       'Presença confirmada': isPresencaConfirmada(item) ? 'Sim' : 'Não',
+      'Cancelada': isCancelada(item) ? 'Sim' : 'Não',
+      'Local': getLocalLabel(item),
       'Nome do pagante': item.pagante || '',
       'Nome da reserva': item.reserva || '',
       'Motivo': item.motivo || '',
@@ -1097,11 +1550,12 @@
       const workbook = XLSX.utils.book_new();
       const totalValor = linhas.reduce((soma, item) => soma + Number(item.valor || 0), 0);
       const totalCompareceu = linhas.filter(item => isPresencaConfirmada(item)).length;
+      const totalCanceladas = linhas.filter(item => isCancelada(item)).length;
       const cabecalhos = Object.keys(dados[0]);
       const aoa = [
         ['CONTROLE DE RESERVAS'],
         [],
-        ['Total de reservas', linhas.length, '', 'Valor total', fmtValor(totalValor), '', 'Compareceram', totalCompareceu, ''],
+        ['Total de reservas', linhas.length, '', 'Valor total', fmtValor(totalValor), '', 'Compareceram', totalCompareceu, '', 'Canceladas', totalCanceladas, ''],
         [],
         cabecalhos,
         ...dados.map(item => cabecalhos.map(chave => item[chave]))
@@ -1111,13 +1565,15 @@
         { s: { r: 0, c: 0 }, e: { r: 0, c: cabecalhos.length - 1 } },
         { s: { r: 2, c: 0 }, e: { r: 3, c: 1 } },
         { s: { r: 2, c: 3 }, e: { r: 3, c: 4 } },
-        { s: { r: 2, c: 6 }, e: { r: 3, c: 7 } }
+        { s: { r: 2, c: 6 }, e: { r: 3, c: 7 } },
+        { s: { r: 2, c: 9 }, e: { r: 3, c: 10 } }
       ];
       worksheet['!cols'] = [
-        { wch: 16 }, { wch: 15 }, { wch: 16 }, { wch: 14 }, { wch: 18 },
+        { wch: 16 }, { wch: 15 }, { wch: 16 }, { wch: 14 }, { wch: 16 },
+        { wch: 16 }, { wch: 18 }, { wch: 12 }, { wch: 14 },
         { wch: 20 }, { wch: 20 }, { wch: 18 }, { wch: 24 }
       ];
-      worksheet['!autofilter'] = { ref: `A5:I${aoa.length}` };
+      worksheet['!autofilter'] = { ref: `A5:M${aoa.length}` };
       worksheet['!rows'] = [{ hpt: 24 }, { hpt: 6 }, { hpt: 28 }, { hpt: 6 }, { hpt: 22 }];
 
       const styles = {
@@ -1164,7 +1620,7 @@
         if (pos.r === 0) {
           worksheet[cell].s = styles.title;
         } else if (pos.r === 2) {
-          worksheet[cell].s = [0, 3, 6].includes(pos.c) ? styles.summaryLabel : styles.summaryValue;
+          worksheet[cell].s = [0, 3, 6, 9].includes(pos.c) ? styles.summaryLabel : styles.summaryValue;
         } else if (pos.r === 4) {
           worksheet[cell].s = styles.header;
         } else if (pos.r > 4) {
@@ -1192,6 +1648,70 @@
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
 
+  function montarIdentidadeKuroShiro() {
+    const topbarOriginal = document.querySelector('.topbar');
+    const appOriginal = document.querySelector('.app');
+    const navOriginal = document.querySelector('.nav');
+    if (!topbarOriginal || !appOriginal || !navOriginal) return;
+
+    const shell = document.createElement('div');
+    shell.className = 'app-shell';
+
+    const sidebar = document.createElement('aside');
+    sidebar.className = 'sidebar';
+    sidebar.innerHTML = `
+      <div class="brand-mark">
+        <img class="brand-logo" src="kuro-logo.png" alt="Logo Kuro">
+        <p class="brand-name">KURO<span style="color:var(--stone-light);font-size:14px;"> / </span>SHIRO</p>
+        <p class="brand-sub">Sistema de reservas</p>
+      </div>
+      <nav class="sidebar-nav"></nav>
+      <div class="sidebar-foot">
+        <b>Salão Kuro</b> · Balcão Shiro<br>Uso interno — equipe de sala
+      </div>
+    `;
+
+    const sidebarNav = sidebar.querySelector('.sidebar-nav');
+    navOriginal.querySelectorAll('.nav-btn').forEach(btn => {
+      const clone = btn.cloneNode(true);
+      clone.classList.add('sidebar-nav-btn');
+      sidebarNav.appendChild(clone);
+    });
+
+    const main = document.createElement('main');
+    main.className = 'main';
+
+    const topbar = document.createElement('div');
+    topbar.className = 'topbar';
+    const topbarActions = topbarOriginal.querySelector('.topbar-actions')?.cloneNode(true);
+    topbar.innerHTML = `
+      <div>
+        <div class="topbar-kicker">Painel interno</div>
+        <div class="topbar-brand"><i class="ti ti-calendar-event"></i>Controle de Reservas</div>
+        <div class="topbar-date">Segunda-feira, 3 de agosto de 2026</div>
+      </div>
+      <div class="topbar-actions"></div>
+    `;
+    if (topbarActions) {
+      topbar.querySelector('.topbar-actions').replaceWith(topbarActions);
+    }
+
+    const mainBody = document.createElement('section');
+    mainBody.className = 'main-body';
+
+    Array.from(appOriginal.querySelectorAll('.screen')).forEach(screen => {
+      mainBody.appendChild(screen);
+    });
+
+    main.append(topbar, mainBody);
+
+    shell.append(sidebar, main);
+    document.body.insertBefore(shell, topbarOriginal);
+    topbarOriginal.remove();
+    appOriginal.remove();
+  }
+
+  montarIdentidadeKuroShiro();
   renderLista();
   renderPlanilha();
 </script>
