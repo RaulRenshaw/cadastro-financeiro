@@ -612,7 +612,10 @@
     color: var(--paper);
     border-color: var(--red);
   }
-  .main-body { max-width: 1280px; }
+  .main-body {
+    width: 100%;
+    max-width: none;
+  }
   .screen { display: none; }
   .screen.active { display: block; }
   .card,
@@ -625,6 +628,7 @@
     background: var(--surface);
     border: 1px solid var(--hairline);
     box-shadow: none;
+    width: 100%;
   }
   .card { padding: 18px 22px; }
   .card-title {
@@ -656,6 +660,11 @@
     font-family: 'Shippori Mincho', serif;
     font-size: 28px;
     color: var(--ink);
+  }
+  .stat-sub {
+    margin-top: 4px;
+    font-size: 12px;
+    color: var(--stone);
   }
   .stat-val.accent { color: var(--red); }
   .sheet-toolbar {
@@ -726,9 +735,10 @@
     overflow: auto;
     max-height: none;
     min-height: 520px;
+    width: 100%;
   }
   .sheet-table {
-    min-width: 1480px;
+    min-width: 1740px;
   }
   .sheet-table thead th {
     background: var(--paper-dim);
@@ -841,12 +851,12 @@
         <div class="sheet-summary-card">
           <div class="kicker">Compareceram</div>
           <div class="value" id="sheet-vendas">0</div>
-          <div class="sub">itens compareceram</div>
+          <div class="sub" id="sheet-vendas-valor">R$ 0,00 recebidos</div>
         </div>
         <div class="sheet-summary-card">
-          <div class="kicker">Canceladas</div>
-          <div class="value" id="sheet-canceladas">0</div>
-          <div class="sub">reservas marcadas como canceladas</div>
+          <div class="kicker">No-show</div>
+          <div class="value" id="sheet-noshow">0</div>
+          <div class="sub" id="sheet-noshow-valor">R$ 0,00 recebidos</div>
         </div>
       </div>
 
@@ -854,24 +864,26 @@
         <table class="sheet-table">
           <thead>
             <tr>
-              <th>Data do pagamento</th>
-              <th class="right">Valor da reserva</th>
+              <th>Nome da reserva</th>
+              <th>Nome do pagante</th>
+              <th class="center">Q. pessoas</th>
               <th>Data da reserva</th>
-              <th class="center">Anexos</th>
+              <th>Data do pagamento</th>
+              <th class="right">Valor</th>
+              <th class="center">Anexo</th>
               <th class="center">Val. pagamento</th>
               <th class="center">Val. reserva</th>
               <th class="center">Presença confirmada</th>
+              <th class="center">No-show</th>
               <th class="center">Cancelada</th>
               <th>Local</th>
-              <th>Nome do pagante</th>
-              <th>Nome da reserva</th>
               <th>Motivo</th>
               <th>OBS</th>
               <th class="center">Ajustes</th>
             </tr>
           </thead>
           <tbody id="sheet-body">
-            <tr><td colspan="14"><div class="sheet-empty">Nenhuma reserva cadastrada ainda.</div></td></tr>
+            <tr><td colspan="16"><div class="sheet-empty">Nenhuma reserva cadastrada ainda.</div></td></tr>
           </tbody>
         </table>
       </div>
@@ -891,10 +903,12 @@
       <div class="stat">
         <div class="stat-label">Compareceram</div>
         <div class="stat-val" id="stat-conf">0</div>
+        <div class="stat-sub" id="stat-conf-valor">R$ 0,00 recebidos</div>
       </div>
       <div class="stat">
         <div class="stat-label">No-show</div>
         <div class="stat-val" id="stat-noshow">0</div>
+        <div class="stat-sub" id="stat-noshow-valor">R$ 0,00 recebidos</div>
       </div>
     </div>
     <div id="lista-reservas">
@@ -1266,10 +1280,16 @@
   function renderLista() {
     const el = document.getElementById('lista-reservas');
     document.getElementById('stat-total').textContent = reservas.length;
-    const total = reservas.reduce((soma, item) => soma + Number(item.valor || 0), 0);
-    document.getElementById('stat-valor').textContent = fmtValor(total);
-    document.getElementById('stat-conf').textContent = reservas.filter(item => getPresencaEstado(item) === 'compareceu').length;
-    document.getElementById('stat-noshow').textContent = reservas.filter(item => getPresencaEstado(item) === 'nao_compareceu').length;
+    const confirmadas = reservas.filter(item => getPresencaEstado(item) === 'compareceu');
+    const noshow = reservas.filter(item => getPresencaEstado(item) === 'nao_compareceu');
+    const totalRecebido = confirmadas.reduce((soma, item) => soma + Number(item.valor || 0), 0) + noshow.reduce((soma, item) => soma + Number(item.valor || 0), 0);
+    const valorConfirmadas = confirmadas.reduce((soma, item) => soma + Number(item.valor || 0), 0);
+    const valorNoshow = noshow.reduce((soma, item) => soma + Number(item.valor || 0), 0);
+    document.getElementById('stat-valor').textContent = fmtValor(totalRecebido);
+    document.getElementById('stat-conf').textContent = confirmadas.length;
+    document.getElementById('stat-conf-valor').textContent = fmtValor(valorConfirmadas) + ' recebidos';
+    document.getElementById('stat-noshow').textContent = noshow.length;
+    document.getElementById('stat-noshow-valor').textContent = fmtValor(valorNoshow) + ' recebidos';
 
     if (!reservas.length) {
       el.innerHTML = '<div class="empty"><i class="ti ti-calendar-off"></i>Nenhuma reserva ainda.<br>Clique em "Nova reserva" para comeÃ§ar.</div>';
@@ -1285,13 +1305,13 @@
           </div>
           <span class="badge ${getPresencaEstado(item) === 'compareceu' ? 'confirmed' : getPresencaEstado(item) === 'nao_compareceu' ? 'absent' : getPresencaEstado(item) === 'cancelada' ? 'cancelled' : 'pending'}">
             <i class="ti ti-${getPresencaEstado(item) === 'compareceu' ? 'check' : getPresencaEstado(item) === 'nao_compareceu' ? 'x' : getPresencaEstado(item) === 'cancelada' ? 'ban' : 'clock'}"></i>
-            ${getPresencaEstado(item) === 'compareceu' ? 'Compareceu' : getPresencaEstado(item) === 'nao_compareceu' ? 'Não compareceu' : getPresencaEstado(item) === 'cancelada' ? 'Cancelada' : 'Pendente'}
+            ${getPresencaEstado(item) === 'compareceu' ? 'Compareceu' : getPresencaEstado(item) === 'nao_compareceu' ? 'No-show' : getPresencaEstado(item) === 'cancelada' ? 'Cancelada' : 'Pendente'}
           </span>
         </div>
         <div class="reserva-info">
+          <span class="info-chip"><i class="ti ti-users"></i> ${item.pessoas} pessoa${item.pessoas > 1 ? 's' : ''}</span>
           <span class="info-chip"><i class="ti ti-calendar"></i> Reserva: ${fmtDate(item.dataReserva)}</span>
           <span class="info-chip"><i class="ti ti-credit-card"></i> Pagamento: ${fmtDate(item.dataPagamento)}</span>
-          <span class="info-chip"><i class="ti ti-users"></i> ${item.pessoas} pessoa${item.pessoas > 1 ? 's' : ''}</span>
           <span class="info-chip"><i class="ti ti-map-pin"></i> ${escHtml(getLocalLabel(item))}</span>
           ${item.motivo ? `<span class="info-chip"><i class="ti ti-tag"></i> ${escHtml(item.motivo)}</span>` : ''}
           ${item.comprovante ? '<span class="info-chip" style="color:var(--success-text)"><i class="ti ti-photo-check"></i> Comprovante anexado</span>' : ''}
@@ -1326,33 +1346,41 @@
     if (!el) return;
 
     const linhas = getReservasFiltradas();
-    const totalValor = linhas.reduce((soma, item) => soma + Number(item.valor || 0), 0);
-    const totalVendas = linhas.filter(item => isPresencaConfirmada(item)).length;
-    const totalCanceladas = linhas.filter(item => isCancelada(item)).length;
+    const confirmadas = linhas.filter(item => getPresencaEstado(item) === 'compareceu');
+    const noshow = linhas.filter(item => getPresencaEstado(item) === 'nao_compareceu');
+    const totalValor = confirmadas.reduce((soma, item) => soma + Number(item.valor || 0), 0) + noshow.reduce((soma, item) => soma + Number(item.valor || 0), 0);
+    const totalVendas = confirmadas.length;
+    const totalNoShow = noshow.length;
+    const valorVendas = confirmadas.reduce((soma, item) => soma + Number(item.valor || 0), 0);
+    const valorNoShow = noshow.reduce((soma, item) => soma + Number(item.valor || 0), 0);
 
     document.getElementById('sheet-total').textContent = linhas.length;
     document.getElementById('sheet-valor').textContent = fmtValor(totalValor);
     document.getElementById('sheet-vendas').textContent = totalVendas;
-    document.getElementById('sheet-canceladas').textContent = totalCanceladas;
+    document.getElementById('sheet-vendas-valor').textContent = fmtValor(valorVendas) + ' recebidos';
+    document.getElementById('sheet-noshow').textContent = totalNoShow;
+    document.getElementById('sheet-noshow-valor').textContent = fmtValor(valorNoShow) + ' recebidos';
 
     if (!linhas.length) {
-      el.innerHTML = '<tr><td colspan="14"><div class="sheet-empty">Nenhuma reserva encontrada.</div></td></tr>';
+      el.innerHTML = '<tr><td colspan="16"><div class="sheet-empty">Nenhuma reserva encontrada.</div></td></tr>';
       return;
     }
 
     el.innerHTML = linhas.map(item => `
       <tr>
+        <td>${escHtml(item.reserva)}</td>
+        <td>${escHtml(item.pagante)}</td>
+        <td class="center">${item.pessoas ?? '-'}</td>
+        <td>${fmtDate(item.dataReserva)}</td>
         <td>${fmtDate(item.dataPagamento)}</td>
         <td class="right">${fmtValor(item.valor)}</td>
-        <td>${fmtDate(item.dataReserva)}</td>
         <td class="center">${item.comprovante ? `<button class="btn mini-btn" onclick="verComprovante(${item.id})">Ver anexo</button>` : '-'}</td>
         <td class="center"><input type="checkbox" ${!!item.dataPagamento ? 'checked' : ''} disabled></td>
         <td class="center"><input type="checkbox" ${!!item.dataReserva ? 'checked' : ''} disabled></td>
         <td class="center"><input type="checkbox" ${isPresencaConfirmada(item) ? 'checked' : ''} onchange="togglePresencaConfirmada(${item.id}, this.checked)" ${isCancelada(item) ? 'disabled' : ''}></td>
+        <td class="center"><input type="checkbox" ${getPresencaEstado(item) === 'nao_compareceu' ? 'checked' : ''} disabled></td>
         <td class="center"><input type="checkbox" ${isCancelada(item) ? 'checked' : ''} onchange="toggleCancelada(${item.id}, this.checked)"></td>
         <td>${escHtml(getLocalLabel(item))}</td>
-        <td>${escHtml(item.pagante)}</td>
-        <td>${escHtml(item.reserva)}</td>
         <td class="muted">${escHtml(item.motivo || '-')}</td>
         <td class="muted" title="${escHtml(item.obs || '')}">${escHtml(item.obs || '-')}</td>
         <td>
@@ -1381,7 +1409,7 @@
         </div>
         <div class="presenca-btns">
           <span class="badge ${getPresencaEstado(item) === 'compareceu' ? 'confirmed' : getPresencaEstado(item) === 'nao_compareceu' ? 'absent' : getPresencaEstado(item) === 'cancelada' ? 'cancelled' : 'pending'}">
-            ${getPresencaEstado(item) === 'compareceu' ? 'Compareceu' : getPresencaEstado(item) === 'nao_compareceu' ? 'Não compareceu' : getPresencaEstado(item) === 'cancelada' ? 'Cancelada' : 'Pendente'}
+            ${getPresencaEstado(item) === 'compareceu' ? 'Compareceu' : getPresencaEstado(item) === 'nao_compareceu' ? 'No-show' : getPresencaEstado(item) === 'cancelada' ? 'Cancelada' : 'Pendente'}
           </span>
           ${!isCancelada(item) ? `<button class="btn success-btn" style="font-size:12px;padding:5px 10px" onclick="setPresenca(${item.id},'compareceu')" title="Confirmar presença"><i class="ti ti-check"></i></button>` : ''}
           ${!isCancelada(item) ? `<button class="btn danger" style="font-size:12px;padding:5px 10px" onclick="setPresenca(${item.id},'nao_compareceu')" title="Registrar ausência"><i class="ti ti-x"></i></button>` : ''}
@@ -1529,18 +1557,26 @@
       return;
     }
 
+    const confirmadas = linhas.filter(item => getPresencaEstado(item) === 'compareceu');
+    const noshow = linhas.filter(item => getPresencaEstado(item) === 'nao_compareceu');
+    const totalValor = confirmadas.reduce((soma, item) => soma + Number(item.valor || 0), 0) + noshow.reduce((soma, item) => soma + Number(item.valor || 0), 0);
+    const valorCompareceu = confirmadas.reduce((soma, item) => soma + Number(item.valor || 0), 0);
+    const valorNoshow = noshow.reduce((soma, item) => soma + Number(item.valor || 0), 0);
+
     const dados = linhas.map(item => ({
-      'Data do pagamento': fmtDate(item.dataPagamento),
-      'Valor da reserva': Number(item.valor || 0),
+      'Nome da reserva': item.reserva || '',
+      'Nome do pagante': item.pagante || '',
+      'Q. pessoas': item.pessoas ?? '',
       'Data da reserva': fmtDate(item.dataReserva),
-      'Anexos': item.comprovante ? 'Ver anexo' : '-',
+      'Data do pagamento': fmtDate(item.dataPagamento),
+      'Valor': Number(item.valor || 0),
+      'Anexo': item.comprovante ? 'Ver anexo' : '-',
       'Validação pagamento': item.dataPagamento ? 'Sim' : 'Não',
       'Validação reserva': item.dataReserva ? 'Sim' : 'Não',
       'Presença confirmada': isPresencaConfirmada(item) ? 'Sim' : 'Não',
+      'No-show': getPresencaEstado(item) === 'nao_compareceu' ? 'Sim' : 'Não',
       'Cancelada': isCancelada(item) ? 'Sim' : 'Não',
       'Local': getLocalLabel(item),
-      'Nome do pagante': item.pagante || '',
-      'Nome da reserva': item.reserva || '',
       'Motivo': item.motivo || '',
       'OBS': item.obs || ''
     }));
@@ -1548,14 +1584,13 @@
     const nomeBase = 'reservas-' + new Date().toISOString().slice(0, 10);
     if (formato === 'xlsx' && window.XLSX) {
       const workbook = XLSX.utils.book_new();
-      const totalValor = linhas.reduce((soma, item) => soma + Number(item.valor || 0), 0);
-      const totalCompareceu = linhas.filter(item => isPresencaConfirmada(item)).length;
-      const totalCanceladas = linhas.filter(item => isCancelada(item)).length;
+      const totalCompareceu = confirmadas.length;
+      const totalNoShow = noshow.length;
       const cabecalhos = Object.keys(dados[0]);
       const aoa = [
         ['CONTROLE DE RESERVAS'],
         [],
-        ['Total de reservas', linhas.length, '', 'Valor total', fmtValor(totalValor), '', 'Compareceram', totalCompareceu, '', 'Canceladas', totalCanceladas, ''],
+        ['Total de reservas', linhas.length, '', 'Valor total', fmtValor(totalValor), '', 'Compareceram', totalCompareceu, '', 'Valor compareceu', fmtValor(valorCompareceu), '', 'No-show', totalNoShow, '', 'Valor no-show', fmtValor(valorNoshow), ''],
         [],
         cabecalhos,
         ...dados.map(item => cabecalhos.map(chave => item[chave]))
@@ -1566,14 +1601,16 @@
         { s: { r: 2, c: 0 }, e: { r: 3, c: 1 } },
         { s: { r: 2, c: 3 }, e: { r: 3, c: 4 } },
         { s: { r: 2, c: 6 }, e: { r: 3, c: 7 } },
-        { s: { r: 2, c: 9 }, e: { r: 3, c: 10 } }
+        { s: { r: 2, c: 9 }, e: { r: 3, c: 10 } },
+        { s: { r: 2, c: 12 }, e: { r: 3, c: 13 } },
+        { s: { r: 2, c: 15 }, e: { r: 3, c: 16 } }
       ];
       worksheet['!cols'] = [
-        { wch: 16 }, { wch: 15 }, { wch: 16 }, { wch: 14 }, { wch: 16 },
-        { wch: 16 }, { wch: 18 }, { wch: 12 }, { wch: 14 },
-        { wch: 20 }, { wch: 20 }, { wch: 18 }, { wch: 24 }
+        { wch: 22 }, { wch: 20 }, { wch: 10 }, { wch: 16 }, { wch: 16 },
+        { wch: 14 }, { wch: 12 }, { wch: 14 }, { wch: 14 }, { wch: 16 },
+        { wch: 12 }, { wch: 12 }, { wch: 14 }, { wch: 18 }, { wch: 24 }
       ];
-      worksheet['!autofilter'] = { ref: `A5:M${aoa.length}` };
+      worksheet['!autofilter'] = { ref: `A5:O${aoa.length}` };
       worksheet['!rows'] = [{ hpt: 24 }, { hpt: 6 }, { hpt: 28 }, { hpt: 6 }, { hpt: 22 }];
 
       const styles = {
@@ -1620,7 +1657,7 @@
         if (pos.r === 0) {
           worksheet[cell].s = styles.title;
         } else if (pos.r === 2) {
-          worksheet[cell].s = [0, 3, 6, 9].includes(pos.c) ? styles.summaryLabel : styles.summaryValue;
+          worksheet[cell].s = [0, 3, 6, 9, 12, 15].includes(pos.c) ? styles.summaryLabel : styles.summaryValue;
         } else if (pos.r === 4) {
           worksheet[cell].s = styles.header;
         } else if (pos.r > 4) {
