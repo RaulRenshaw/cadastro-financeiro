@@ -778,6 +778,19 @@
     align-items: center;
   }
   .sheet-tools { gap: 10px; }
+  .sheet-filters,
+  .presence-filters {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  .sheet-filters input,
+  .sheet-filters select,
+  .presence-filters input {
+    min-width: 160px;
+    max-width: 240px;
+  }
   .sheet-tools .btn,
   .actions .btn,
   .reserva-actions .btn {
@@ -859,6 +872,19 @@
   }
   .sheet-table tbody tr:nth-child(even) td { background: #f8f6f0; }
   .sheet-table tbody tr:hover td { background: rgba(158,27,27,0.04); }
+  .sheet-table .mini-btn {
+    border-radius: 5px;
+    font-size: 11px;
+    padding: 4px 8px;
+  }
+  .agenda-table .actions-cell,
+  .sheet-table .actions-cell {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  .agenda-table .mini-btn,
   .sheet-table .mini-btn {
     border-radius: 5px;
     font-size: 11px;
@@ -1120,7 +1146,18 @@
           <div class="section-hint">Visualização no estilo Excel com exportação para XLSX e CSV.</div>
         </div>
         <div class="sheet-tools">
-          <input type="search" id="sheet-search" placeholder="Buscar por pagante, reserva, motivo..." oninput="renderPlanilha()" style="min-width:280px;max-width:360px">
+          <div class="sheet-filters">
+            <input type="search" id="sheet-search" placeholder="Buscar por pagante, reserva, motivo..." oninput="renderPlanilha()" style="min-width:280px;max-width:360px">
+            <input type="date" id="sheet-date-from" onchange="renderPlanilha()">
+            <input type="date" id="sheet-date-to" onchange="renderPlanilha()">
+            <select id="sheet-status" onchange="renderPlanilha()">
+              <option value="">Todos os status</option>
+              <option value="pendente">Pendente</option>
+              <option value="compareceu">Compareceu</option>
+              <option value="nao_compareceu">No-show</option>
+              <option value="cancelada">Cancelada</option>
+            </select>
+          </div>
           <button class="btn" onclick="exportarPlanilha('csv')"><i class="ti ti-file-text"></i> CSV</button>
           <button class="btn primary" onclick="exportarPlanilha('xlsx')"><i class="ti ti-file-spreadsheet"></i> Excel</button>
         </div>
@@ -1160,11 +1197,8 @@
               <th>Data do pagamento</th>
               <th class="right">Valor</th>
               <th class="center">Anexo</th>
-              <th class="center">Val. pagamento</th>
-              <th class="center">Val. reserva</th>
-              <th class="center">Presença confirmada</th>
-              <th class="center">No-show</th>
-              <th class="center">Cancelada</th>
+              <th>Status</th>
+              <th>Pagamento</th>
               <th>Local</th>
               <th>Motivo</th>
               <th>OBS</th>
@@ -1223,10 +1257,11 @@
               <th>Status</th>
               <th>Pagamento</th>
               <th class="right">Valor</th>
+              <th class="center">Ações</th>
             </tr>
           </thead>
           <tbody id="agenda-body">
-            <tr><td colspan="7"><div class="agenda-empty">Nenhuma reserva cadastrada ainda.</div></td></tr>
+            <tr><td colspan="8"><div class="agenda-empty">Nenhuma reserva cadastrada ainda.</div></td></tr>
           </tbody>
         </table>
       </div>
@@ -1303,25 +1338,13 @@
                 <label>Motivo</label>
                 <input type="text" id="f-motivo" placeholder="Ex: Aniversário">
               </div>
-              <div>
-                <label>Presença confirmada</label>
-                <select id="f-presenca-confirmada">
-                  <option value="nao">Não</option>
-                  <option value="sim">Sim</option>
-                </select>
-              </div>
-              <div>
-                <label>Reserva cancelada</label>
-                <select id="f-cancelada">
-                  <option value="nao">Não</option>
-                  <option value="sim">Sim</option>
-                </select>
-              </div>
+              <div></div>
+              <div></div>
             </div>
 
             <label>Observações</label>
             <textarea id="f-obs" placeholder="Detalhes adicionais"></textarea>
-            <div class="field-note">Use este campo para restrições de mesa, celebrações, alergias ou observações da equipe.</div>
+            <div class="field-note">Use este campo para restrições de mesa, celebrações, alergias ou observações da equipe. Status de presença, no-show e cancelamento ficam para a operação depois do cadastro.</div>
           </div>
 
           <div class="editor-section">
@@ -1398,6 +1421,11 @@
           <div class="section-hint">Atualize comparecimento e no-show no mesmo padrão do dashboard.</div>
         </div>
         <span class="tag">Equipe de atendimento</span>
+      </div>
+      <div class="presence-body" style="padding-bottom:0;">
+        <div class="presence-filters">
+          <input type="date" id="presenca-date-filter" onchange="renderPresenca()">
+        </div>
       </div>
       <div class="presence-body" id="lista-presenca">
         <div class="presence-empty"><i class="ti ti-users"></i>Nenhuma reserva cadastrada ainda.</div>
@@ -1623,6 +1651,18 @@
     return { label: 'Pago', className: 'pago' };
   }
 
+  function getStatusVisual(item) {
+    const status = getPresencaEstado(item);
+    if (status === 'compareceu') return { className: 'confirmada', mark: '確', label: 'Confirmada' };
+    if (status === 'nao_compareceu') return { className: 'pendente', mark: '待', label: 'No-show' };
+    if (status === 'cancelada') return { className: 'cancelada', mark: '×', label: 'Cancelada' };
+    return { className: 'pendente', mark: '待', label: 'Pendente' };
+  }
+
+  function jsStr(valor) {
+    return JSON.stringify(String(valor ?? ''));
+  }
+
   function showScreen(nome) {
     document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));
     document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
@@ -1650,16 +1690,12 @@
     const pessoas = Number(document.getElementById('f-pessoas')?.value || 0);
     const motivo = document.getElementById('f-motivo')?.value.trim() || '';
     const local = document.getElementById('f-local')?.value || 'ambos';
-    const presencaConfirmada = document.getElementById('f-presenca-confirmada')?.value === 'sim';
-    const cancelada = document.getElementById('f-cancelada')?.value === 'sim';
     const obs = document.getElementById('f-obs')?.value.trim() || '';
     const dataPagamento = document.getElementById('f-data-pagamento')?.value || '';
 
     const localTexto = local === 'kuro' ? 'Salão Kuro' : local === 'shiro' ? 'Balcão Shiro' : 'Salão Kuro & Balcão Shiro';
-    const presencaTexto = cancelada ? 'Reserva cancelada' : presencaConfirmada ? 'Presença confirmada' : 'Presença pendente';
-    const presencaClasse = cancelada ? 'cancelled' : presencaConfirmada ? 'confirmed' : 'pending';
-    const pagamentoTexto = cancelada ? 'Pagamento reembolsado' : dataPagamento ? 'Pagamento registrado' : 'Pagamento em aberto';
-    const pagamentoClasse = cancelada ? 'cancelled' : dataPagamento ? 'paid' : 'open';
+    const pagamentoTexto = dataPagamento ? 'Pagamento registrado' : 'Pagamento em aberto';
+    const pagamentoClasse = dataPagamento ? 'paid' : 'open';
 
     document.getElementById('draft-reserva').textContent = reserva;
     document.getElementById('draft-pagante').textContent = pagante;
@@ -1669,8 +1705,8 @@
     document.getElementById('draft-pessoas').textContent = `${pessoas || 0} pessoa${pessoas === 1 ? '' : 's'}`;
 
     const presencaChip = document.getElementById('draft-presenca-chip');
-    presencaChip.className = `status-chip ${presencaClasse}`;
-    presencaChip.textContent = presencaTexto;
+    presencaChip.className = 'status-chip pending';
+    presencaChip.textContent = 'Status definido depois';
 
     const pagamentoChip = document.getElementById('draft-pagamento-chip');
     pagamentoChip.className = `status-chip ${pagamentoClasse}`;
@@ -1686,7 +1722,7 @@
   }
 
   function conectarPreviewFormulario() {
-    ['f-pagante', 'f-reserva', 'f-data-reserva', 'f-horario', 'f-data-pagamento', 'f-valor', 'f-pessoas', 'f-motivo', 'f-local', 'f-presenca-confirmada', 'f-cancelada', 'f-obs']
+    ['f-pagante', 'f-reserva', 'f-data-reserva', 'f-horario', 'f-data-pagamento', 'f-valor', 'f-pessoas', 'f-motivo', 'f-local', 'f-obs']
       .forEach(id => {
         const campo = document.getElementById(id);
         if (campo) {
@@ -1716,8 +1752,6 @@
     document.getElementById('f-data-reserva').value = '';
     document.getElementById('f-data-pagamento').value = '';
     document.getElementById('f-local').value = 'ambos';
-    document.getElementById('f-presenca-confirmada').value = 'nao';
-    document.getElementById('f-cancelada').value = 'nao';
     document.getElementById('f-comprovante').value = '';
     document.getElementById('comp-preview').style.display = 'none';
     document.getElementById('comp-box').style.display = 'block';
@@ -1740,8 +1774,6 @@
     document.getElementById('f-pessoas').value = item.pessoas ?? '';
     document.getElementById('f-motivo').value = item.motivo || '';
     document.getElementById('f-local').value = item.localReserva || 'ambos';
-    document.getElementById('f-presenca-confirmada').value = isPresencaConfirmada(item) ? 'sim' : 'nao';
-    document.getElementById('f-cancelada').value = isCancelada(item) ? 'sim' : 'nao';
     document.getElementById('f-obs').value = item.obs || '';
     compBase64 = item.comprovante || null;
 
@@ -1791,8 +1823,6 @@
     const pessoas = Number(document.getElementById('f-pessoas').value);
     const motivo = document.getElementById('f-motivo').value.trim();
     const localReserva = document.getElementById('f-local').value;
-    const presencaConfirmada = document.getElementById('f-presenca-confirmada').value === 'sim';
-    const cancelada = document.getElementById('f-cancelada').value === 'sim';
     const obs = document.getElementById('f-obs').value.trim();
 
     if (!pagante || !reserva || !dataReserva || !dataPagamento || isNaN(valor) || isNaN(pessoas)) {
@@ -1813,10 +1843,6 @@
       item.motivo = motivo;
       item.localReserva = localReserva;
       item.obs = obs;
-      item.cancelada = cancelada;
-      item.presencaConfirmada = cancelada ? false : presencaConfirmada;
-      item.vendaRealizada = cancelada ? false : presencaConfirmada;
-      item.presenca = cancelada ? 'cancelada' : (presencaConfirmada ? 'compareceu' : 'pendente');
       item.comprovante = compBase64;
       toast('Reserva atualizada com sucesso!');
     } else {
@@ -1832,11 +1858,11 @@
         motivo,
         localReserva,
         obs,
-        cancelada,
-        presencaConfirmada: cancelada ? false : presencaConfirmada,
-        vendaRealizada: cancelada ? false : presencaConfirmada,
+        cancelada: false,
+        presencaConfirmada: false,
+        vendaRealizada: false,
         comprovante: compBase64,
-        presenca: cancelada ? 'cancelada' : (presencaConfirmada ? 'compareceu' : 'pendente')
+        presenca: 'pendente'
       });
       toast('Reserva salva com sucesso!');
     }
@@ -1875,12 +1901,12 @@
     document.getElementById('stat-noshow-valor').textContent = fmtValor(valorNoshow) + ' recebidos';
 
     if (!agenda.length) {
-      el.innerHTML = '<tr><td colspan="7"><div class="agenda-empty">Nenhuma reserva cadastrada ainda.</div></td></tr>';
+      el.innerHTML = '<tr><td colspan="8"><div class="agenda-empty">Nenhuma reserva cadastrada ainda.</div></td></tr>';
       return;
     }
 
     el.innerHTML = agenda.map(item => {
-      const status = getPresencaEstado(item);
+      const status = getStatusVisual(item);
       const pagamento = getPagamentoLabel(item);
       return `
       <tr>
@@ -1892,21 +1918,33 @@
         <td class="center">${item.pessoas ?? '-'}</td>
         <td>${escHtml(getLocalAgendaLabel(item))}</td>
         <td>
-          <span class="hanko ${status === 'compareceu' ? 'confirmada' : status === 'nao_compareceu' ? 'pendente' : status === 'cancelada' ? 'cancelada' : 'pendente'}">
-            <span class="hanko-mark">${status === 'compareceu' ? '確' : status === 'nao_compareceu' ? '待' : status === 'cancelada' ? '×' : '待'}</span>
-            ${status === 'compareceu' ? 'Confirmada' : status === 'nao_compareceu' ? 'No-show' : status === 'cancelada' ? 'Cancelada' : 'Pendente'}
+          <span class="hanko ${status.className}">
+            <span class="hanko-mark">${status.mark}</span>
+            ${status.label}
           </span>
         </td>
         <td><span class="pay-pill ${pagamento.className}">${pagamento.label}</span></td>
         <td class="right valor">${fmtValor(item.valor)}</td>
+        <td>
+          <div class="actions-cell">
+            <button class="btn mini-btn" onclick='editarReserva(${jsStr(item.id)})' title="Editar"><i class="ti ti-edit"></i></button>
+            ${!isCancelada(item) ? `<button class="btn success-btn mini-btn" onclick='setPresenca(${jsStr(item.id)},"compareceu")' title="Confirmar presença"><i class="ti ti-check"></i></button>` : ''}
+            ${!isCancelada(item) ? `<button class="btn danger mini-btn" onclick='setPresenca(${jsStr(item.id)},"nao_compareceu")' title="Marcar no-show"><i class="ti ti-user-x"></i></button>` : ''}
+            ${!isCancelada(item) ? `<button class="btn mini-btn" onclick='cancelarReserva(${jsStr(item.id)})' title="Cancelar reserva"><i class="ti ti-ban"></i></button>` : `<button class="btn mini-btn" onclick='reativarReserva(${jsStr(item.id)})' title="Reativar reserva"><i class="ti ti-arrow-back-up"></i></button>`}
+          </div>
+        </td>
       </tr>`;
     }).join('');
   }
 
   function getReservasFiltradas() {
     const termo = (document.getElementById('sheet-search')?.value || '').trim().toLowerCase();
-    if (!termo) return reservas;
-    return reservas.filter(item => [
+    const dataDe = document.getElementById('sheet-date-from')?.value || '';
+    const dataAte = document.getElementById('sheet-date-to')?.value || '';
+    const status = document.getElementById('sheet-status')?.value || '';
+    return reservas.filter(item => {
+      const statusItem = getPresencaEstado(item);
+      const matchTexto = !termo || [
       item.pagante,
       item.reserva,
       item.motivo,
@@ -1915,7 +1953,12 @@
       isCancelada(item) ? 'cancelada' : '',
       fmtDate(item.dataReserva),
       fmtDate(item.dataPagamento)
-    ].join(' ').toLowerCase().includes(termo));
+      ].join(' ').toLowerCase().includes(termo);
+      const matchDataDe = !dataDe || (item.dataReserva && item.dataReserva >= dataDe);
+      const matchDataAte = !dataAte || (item.dataReserva && item.dataReserva <= dataAte);
+      const matchStatus = !status || statusItem === status;
+      return matchTexto && matchDataDe && matchDataAte && matchStatus;
+    });
   }
 
   function renderPlanilha() {
@@ -1939,7 +1982,7 @@
     document.getElementById('sheet-noshow-valor').textContent = fmtValor(valorNoShow) + ' recebidos';
 
     if (!linhas.length) {
-      el.innerHTML = '<tr><td colspan="16"><div class="sheet-empty">Nenhuma reserva encontrada.</div></td></tr>';
+      el.innerHTML = '<tr><td colspan="13"><div class="sheet-empty">Nenhuma reserva encontrada.</div></td></tr>';
       return;
     }
 
@@ -1951,20 +1994,24 @@
         <td>${fmtDate(item.dataReserva)}</td>
         <td>${fmtDate(item.dataPagamento)}</td>
         <td class="right">${fmtValor(item.valor)}</td>
-        <td class="center">${item.comprovante ? `<button class="btn mini-btn" onclick="verComprovante(${item.id})">Ver anexo</button>` : '-'}</td>
-        <td class="center"><input type="checkbox" ${!!item.dataPagamento ? 'checked' : ''} disabled></td>
-        <td class="center"><input type="checkbox" ${!!item.dataReserva ? 'checked' : ''} disabled></td>
-        <td class="center"><input type="checkbox" ${isPresencaConfirmada(item) ? 'checked' : ''} onchange="togglePresencaConfirmada(${item.id}, this.checked)" ${isCancelada(item) ? 'disabled' : ''}></td>
-        <td class="center"><input type="checkbox" ${getPresencaEstado(item) === 'nao_compareceu' ? 'checked' : ''} disabled></td>
-        <td class="center"><input type="checkbox" ${isCancelada(item) ? 'checked' : ''} onchange="toggleCancelada(${item.id}, this.checked)"></td>
+        <td class="center">${item.comprovante ? `<button class="btn mini-btn" onclick='verComprovante(${jsStr(item.id)})'>Ver anexo</button>` : '-'}</td>
+        <td>
+          <span class="hanko ${getStatusVisual(item).className}">
+            <span class="hanko-mark">${getStatusVisual(item).mark}</span>
+            ${getStatusVisual(item).label}
+          </span>
+        </td>
+        <td><span class="pay-pill ${getPagamentoLabel(item).className}">${getPagamentoLabel(item).label}</span></td>
         <td>${escHtml(getLocalLabel(item))}</td>
         <td class="muted">${escHtml(item.motivo || '-')}</td>
         <td class="muted" title="${escHtml(item.obs || '')}">${escHtml(item.obs || '-')}</td>
         <td>
           <div class="actions-cell">
-            <button class="btn mini-btn" onclick="editarReserva(${item.id})"><i class="ti ti-edit"></i></button>
-            ${!isCancelada(item) ? `<button class="btn mini-btn" onclick="cancelarReserva(${item.id})"><i class="ti ti-ban"></i></button>` : ''}
-            <button class="btn danger mini-btn" onclick="excluir(${item.id})"><i class="ti ti-trash"></i></button>
+            <button class="btn mini-btn" onclick='editarReserva(${jsStr(item.id)})'><i class="ti ti-edit"></i></button>
+            ${!isCancelada(item) ? `<button class="btn success-btn mini-btn" onclick='setPresenca(${jsStr(item.id)},"compareceu")'><i class="ti ti-check"></i></button>` : ''}
+            ${!isCancelada(item) ? `<button class="btn danger mini-btn" onclick='setPresenca(${jsStr(item.id)},"nao_compareceu")'><i class="ti ti-user-x"></i></button>` : ''}
+            ${!isCancelada(item) ? `<button class="btn mini-btn" onclick='cancelarReserva(${jsStr(item.id)})'><i class="ti ti-ban"></i></button>` : `<button class="btn mini-btn" onclick='reativarReserva(${jsStr(item.id)})'><i class="ti ti-arrow-back-up"></i></button>`}
+            <button class="btn danger mini-btn" onclick='excluir(${jsStr(item.id)})'><i class="ti ti-trash"></i></button>
           </div>
         </td>
       </tr>
@@ -1973,12 +2020,14 @@
 
   function renderPresenca() {
     const el = document.getElementById('lista-presenca');
-    if (!reservas.length) {
-      el.innerHTML = '<div class="presence-empty"><i class="ti ti-users"></i>Nenhuma reserva cadastrada ainda.</div>';
+    const dataFiltro = document.getElementById('presenca-date-filter')?.value || '';
+    const itens = !dataFiltro ? reservas : reservas.filter(item => item.dataReserva === dataFiltro);
+    if (!itens.length) {
+      el.innerHTML = `<div class="presence-empty"><i class="ti ti-users"></i>${dataFiltro ? 'Nenhuma reserva encontrada para a data selecionada.' : 'Nenhuma reserva cadastrada ainda.'}</div>`;
       return;
     }
 
-    el.innerHTML = reservas.map(item => `
+    el.innerHTML = itens.map(item => `
       <div class="presenca-item">
         <div>
           <div class="presenca-name">${escHtml(item.reserva)}</div>
@@ -1988,8 +2037,9 @@
           <span class="badge ${getPresencaEstado(item) === 'compareceu' ? 'confirmed' : getPresencaEstado(item) === 'nao_compareceu' ? 'absent' : getPresencaEstado(item) === 'cancelada' ? 'cancelled' : 'pending'}">
             ${getPresencaEstado(item) === 'compareceu' ? 'Compareceu' : getPresencaEstado(item) === 'nao_compareceu' ? 'No-show' : getPresencaEstado(item) === 'cancelada' ? 'Cancelada' : 'Pendente'}
           </span>
-          ${!isCancelada(item) ? `<button class="btn success-btn" style="font-size:12px;padding:5px 10px" onclick="setPresenca(${item.id},'compareceu')" title="Confirmar presença"><i class="ti ti-check"></i></button>` : ''}
-          ${!isCancelada(item) ? `<button class="btn danger" style="font-size:12px;padding:5px 10px" onclick="setPresenca(${item.id},'nao_compareceu')" title="Registrar ausência"><i class="ti ti-x"></i></button>` : ''}
+          ${!isCancelada(item) ? `<button class="btn success-btn" style="font-size:12px;padding:5px 10px" onclick='setPresenca(${jsStr(item.id)},"compareceu")' title="Confirmar presença"><i class="ti ti-check"></i></button>` : ''}
+          ${!isCancelada(item) ? `<button class="btn danger" style="font-size:12px;padding:5px 10px" onclick='setPresenca(${jsStr(item.id)},"nao_compareceu")' title="Registrar ausência"><i class="ti ti-x"></i></button>` : ''}
+          ${!isCancelada(item) ? `<button class="btn" style="font-size:12px;padding:5px 10px" onclick='cancelarReserva(${jsStr(item.id)})' title="Cancelar reserva"><i class="ti ti-ban"></i></button>` : `<button class="btn" style="font-size:12px;padding:5px 10px" onclick='reativarReserva(${jsStr(item.id)})' title="Reativar reserva"><i class="ti ti-arrow-back-up"></i></button>`}
         </div>
       </div>
     `).join('');
@@ -2061,6 +2111,21 @@
     renderLista();
     renderPlanilha();
     renderPresenca();
+  }
+
+  function reativarReserva(id) {
+    const item = reservas.find(reserva => reserva.id === id);
+    if (!item) return;
+    item.cancelada = false;
+    item.presenca = 'pendente';
+    item.presencaConfirmada = false;
+    item.vendaRealizada = false;
+    salvar();
+    renderLista();
+    renderPlanilha();
+    renderPresenca();
+    renderAlterar();
+    toast('Reserva reativada.');
   }
 
   function excluir(id) {
@@ -2148,11 +2213,8 @@
       'Data do pagamento': fmtDate(item.dataPagamento),
       'Valor': Number(item.valor || 0),
       'Anexo': item.comprovante ? 'Ver anexo' : '-',
-      'Validação pagamento': item.dataPagamento ? 'Sim' : 'Não',
-      'Validação reserva': item.dataReserva ? 'Sim' : 'Não',
-      'Presença confirmada': isPresencaConfirmada(item) ? 'Sim' : 'Não',
-      'No-show': getPresencaEstado(item) === 'nao_compareceu' ? 'Sim' : 'Não',
-      'Cancelada': isCancelada(item) ? 'Sim' : 'Não',
+      'Status': getStatusVisual(item).label,
+      'Pagamento': getPagamentoLabel(item).label,
       'Local': getLocalLabel(item),
       'Motivo': item.motivo || '',
       'OBS': item.obs || ''
@@ -2184,10 +2246,10 @@
       ];
       worksheet['!cols'] = [
         { wch: 22 }, { wch: 20 }, { wch: 10 }, { wch: 16 }, { wch: 16 },
-        { wch: 14 }, { wch: 12 }, { wch: 14 }, { wch: 14 }, { wch: 16 },
-        { wch: 12 }, { wch: 12 }, { wch: 14 }, { wch: 18 }, { wch: 24 }
+        { wch: 14 }, { wch: 12 }, { wch: 16 }, { wch: 14 }, { wch: 14 },
+        { wch: 18 }, { wch: 24 }, { wch: 12 }
       ];
-      worksheet['!autofilter'] = { ref: `A5:O${aoa.length}` };
+      worksheet['!autofilter'] = { ref: `A5:M${aoa.length}` };
       worksheet['!rows'] = [{ hpt: 24 }, { hpt: 6 }, { hpt: 28 }, { hpt: 6 }, { hpt: 22 }];
 
       const styles = {
