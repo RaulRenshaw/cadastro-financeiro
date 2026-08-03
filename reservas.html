@@ -616,6 +616,27 @@
     width: 100%;
     max-width: none;
   }
+  .dashboard-panel {
+    width: 100%;
+    background: #fff;
+    border: 1px solid var(--hairline);
+    border-radius: 6px;
+    overflow: hidden;
+  }
+  .dashboard-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    padding: 18px 22px 14px;
+    border-bottom: 1px solid var(--hairline);
+  }
+  .dashboard-title {
+    font-family: 'Shippori Mincho', serif;
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--ink);
+  }
   .screen { display: none; }
   .screen.active { display: block; }
   .card,
@@ -667,6 +688,90 @@
     color: var(--stone);
   }
   .stat-val.accent { color: var(--red); }
+  .agenda-table-wrap {
+    width: 100%;
+    overflow: auto;
+    border-top: 1px solid var(--hairline);
+  }
+  .agenda-table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+  }
+  .agenda-table thead th {
+    text-align: left;
+    font-size: 10.5px;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--stone);
+    font-weight: 600;
+    padding: 12px 22px;
+    border-bottom: 1px solid var(--hairline);
+    background: var(--paper-dim);
+  }
+  .agenda-table tbody td {
+    padding: 15px 22px;
+    border-bottom: 1px solid var(--hairline);
+    vertical-align: middle;
+    font-size: 13px;
+    color: var(--ink);
+    word-break: break-word;
+  }
+  .agenda-table tbody tr:last-child td { border-bottom: none; }
+  .agenda-table tbody tr:hover td { background: var(--paper-dim); }
+  .agenda-table .right { text-align: right; }
+  .agenda-table .center { text-align: center; }
+  .agenda-empty {
+    padding: 2rem;
+    text-align: center;
+    color: var(--stone);
+  }
+  .cliente {
+    font-weight: 600;
+  }
+  .cliente-sub {
+    display: block;
+    font-size: 11.5px;
+    color: var(--stone);
+    font-weight: 400;
+    margin-top: 2px;
+  }
+  .hanko {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+  }
+  .hanko-mark {
+    width: 20px;
+    height: 20px;
+    border-radius: 3px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Shippori Mincho', serif;
+    font-size: 12px;
+    filter: url(#hanko-rough);
+  }
+  .hanko.confirmada .hanko-mark { background: var(--red); color: var(--paper); }
+  .hanko.confirmada { color: var(--red-deep); }
+  .hanko.pendente .hanko-mark { background: none; border: 1.4px solid var(--red); color: var(--red); }
+  .hanko.pendente { color: var(--stone); }
+  .hanko.cancelada .hanko-mark { background: none; border: 1.4px solid var(--stone-light); color: var(--stone-light); }
+  .hanko.cancelada { color: var(--stone-light); }
+  .pay-pill {
+    font-size: 11.5px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-weight: 600;
+    display: inline-flex;
+  }
+  .pay-pill.pago { background: rgba(59,109,17,0.10); color: #3B6D11; }
+  .pay-pill.aberto { background: var(--paper-dim); color: var(--stone); }
+  .pay-pill.reembolsado { background: rgba(158,27,27,0.08); color: var(--red-deep); }
   .sheet-toolbar {
     gap: 16px;
     margin-bottom: 18px;
@@ -891,30 +996,55 @@
   </div>
 
   <div class="screen active" id="screen-lista">
-    <div class="stat-row">
-      <div class="stat">
-        <div class="stat-label">Total de reservas</div>
-        <div class="stat-val" id="stat-total">0</div>
+    <div class="dashboard-panel">
+      <div class="dashboard-head">
+        <div>
+          <div class="dashboard-title">Agenda — Salão Kuro &amp; Balcão Shiro</div>
+          <div class="section-hint">Visão do dia com status, pagamento, presença e valor por reserva.</div>
+        </div>
+        <span class="tag" id="agenda-count">0 reservas</span>
       </div>
-      <div class="stat">
-        <div class="stat-label">Valor arrecadado</div>
-        <div class="stat-val accent" id="stat-valor">R$ 0,00</div>
+
+      <div class="stat-row">
+        <div class="stat">
+          <div class="stat-label">Cobertos hoje</div>
+          <div class="stat-val" id="stat-total">0</div>
+          <div class="stat-sub">pessoas agendadas</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">Reservas confirmadas</div>
+          <div class="stat-val accent" id="stat-conf">0</div>
+          <div class="stat-sub" id="stat-conf-valor">R$ 0,00 recebidos</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">No-show</div>
+          <div class="stat-val" id="stat-noshow">0</div>
+          <div class="stat-sub" id="stat-noshow-valor">R$ 0,00 recebidos</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">Receita confirmada</div>
+          <div class="stat-val" id="stat-valor">R$ 0,00</div>
+          <div class="stat-sub">confirmações + no-show</div>
+        </div>
       </div>
-      <div class="stat">
-        <div class="stat-label">Compareceram</div>
-        <div class="stat-val" id="stat-conf">0</div>
-        <div class="stat-sub" id="stat-conf-valor">R$ 0,00 recebidos</div>
-      </div>
-      <div class="stat">
-        <div class="stat-label">No-show</div>
-        <div class="stat-val" id="stat-noshow">0</div>
-        <div class="stat-sub" id="stat-noshow-valor">R$ 0,00 recebidos</div>
-      </div>
-    </div>
-    <div id="lista-reservas">
-      <div class="empty">
-        <i class="ti ti-calendar-off"></i>
-        Nenhuma reserva ainda.<br>Clique em "Nova reserva" para começar.
+
+      <div class="agenda-table-wrap">
+        <table class="agenda-table">
+          <thead>
+            <tr>
+              <th>Horário</th>
+              <th>Cliente</th>
+              <th>Pessoas</th>
+              <th>Local</th>
+              <th>Status</th>
+              <th>Pagamento</th>
+              <th class="right">Valor</th>
+            </tr>
+          </thead>
+          <tbody id="agenda-body">
+            <tr><td colspan="7"><div class="agenda-empty">Nenhuma reserva cadastrada ainda.</div></td></tr>
+          </tbody>
+        </table>
       </div>
     </div>
   </div>
@@ -940,23 +1070,27 @@
           <input type="date" id="f-data-reserva">
         </div>
         <div>
-          <label>Data do pagamento *</label>
-          <input type="date" id="f-data-pagamento">
+          <label>Horário da reserva</label>
+          <input type="time" id="f-horario">
         </div>
       </div>
 
       <div class="row">
+        <div>
+          <label>Data do pagamento *</label>
+          <input type="date" id="f-data-pagamento">
+        </div>
         <div>
           <label>Valor pago (R$) *</label>
           <input type="number" id="f-valor" placeholder="0,00" min="0" step="0.01">
         </div>
+      </div>
+
+      <div class="row">
         <div>
           <label>Quantidade de pessoas *</label>
           <input type="number" id="f-pessoas" placeholder="Ex: 10" min="1">
         </div>
-      </div>
-
-      <div class="row">
         <div>
           <label>Motivo</label>
           <input type="text" id="f-motivo" placeholder="Ex: Aniversário">
@@ -1060,11 +1194,107 @@
 <div class="toast" id="toast"></div>
 
 <script>
-  let reservas = JSON.parse(localStorage.getItem('reservas') || '[]');
+  const SUPABASE_URL = 'https://olxykphyrstwzpuovrjf.supabase.co';
+  const SUPABASE_KEY = 'sb_publishable_tXHYGD3YFqg2-36B5FqPlg_aDQiOgkh';
+  const supabaseReady = import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm')
+    .then(({ createClient }) => createClient(SUPABASE_URL, SUPABASE_KEY, {
+      auth: { persistSession: false, autoRefreshToken: false }
+    }))
+    .then(client => {
+      window.kuroSupabase = client;
+      return client;
+    });
+
+  let reservas = [];
   let compBase64 = null;
   let editingReservaId = null;
+  let syncQueue = Promise.resolve();
 
   function salvar() {
+    localStorage.setItem('reservas', JSON.stringify(reservas));
+    syncQueue = syncQueue
+      .then(() => sincronizarBanco())
+      .catch(error => console.error('Erro ao sincronizar Supabase:', error));
+    return syncQueue;
+  }
+
+  async function getSupabaseClient() {
+    return supabaseReady;
+  }
+
+  function normalizarReserva(item = {}) {
+    const cancelada = item.cancelada === true || item.presenca === 'cancelada';
+    const presenca = item.presenca || (cancelada ? 'cancelada' : item.presencaConfirmada ? 'compareceu' : 'pendente');
+    return {
+      id: String(item.id ?? crypto.randomUUID()),
+      pagante: item.pagante || '',
+      reserva: item.reserva || '',
+      dataReserva: item.data_reserva || item.dataReserva || '',
+      horario: item.horario || item.horario_reserva || item.horarioReserva || '',
+      dataPagamento: item.data_pagamento || item.dataPagamento || '',
+      valor: Number(item.valor || 0),
+      pessoas: Number(item.pessoas || 1),
+      motivo: item.motivo || '',
+      localReserva: item.local_reserva || item.localReserva || 'ambos',
+      cancelada,
+      presencaConfirmada: typeof item.presenca_confirmada === 'boolean' ? item.presenca_confirmada : !!item.presencaConfirmada,
+      vendaRealizada: typeof item.venda_realizada === 'boolean' ? item.venda_realizada : !!item.vendaRealizada,
+      comprovante: item.comprovante || null,
+      obs: item.obs || '',
+      presenca,
+      created_at: item.created_at || null,
+      updated_at: item.updated_at || null
+    };
+  }
+
+  function paraBanco(item) {
+    const cancelada = item.cancelada === true || item.presenca === 'cancelada';
+    const presenca = cancelada ? 'cancelada' : (item.presenca === 'compareceu' || item.presencaConfirmada ? 'compareceu' : item.presenca === 'nao_compareceu' ? 'nao_compareceu' : 'pendente');
+    return {
+      id: String(item.id),
+      pagante: item.pagante || '',
+      reserva: item.reserva || '',
+      data_reserva: item.dataReserva || null,
+      horario: item.horario || null,
+      data_pagamento: item.dataPagamento || null,
+      valor: Number(item.valor || 0),
+      pessoas: Number(item.pessoas || 1),
+      motivo: item.motivo || null,
+      local_reserva: item.localReserva || 'ambos',
+      presenca,
+      presenca_confirmada: !cancelada && !!item.presencaConfirmada,
+      venda_realizada: !cancelada && !!item.vendaRealizada,
+      cancelada,
+      comprovante: item.comprovante || null,
+      obs: item.obs || null,
+      updated_at: new Date().toISOString()
+    };
+  }
+
+  async function sincronizarBanco() {
+    const supabase = await getSupabaseClient();
+    const payload = reservas.map(paraBanco);
+    const { error: upsertError } = await supabase.from('reservas').upsert(payload, { onConflict: 'id' });
+    if (upsertError) throw upsertError;
+  }
+
+  async function carregarReservasBanco() {
+    const supabase = await getSupabaseClient();
+    const { data, error } = await supabase.from('reservas').select('*').order('created_at', { ascending: false });
+    if (error) throw error;
+
+    if (!data || !data.length) {
+      const cacheLocal = JSON.parse(localStorage.getItem('reservas') || '[]').map(normalizarReserva);
+      if (cacheLocal.length) {
+        reservas = cacheLocal;
+        await sincronizarBanco();
+        return;
+      }
+      reservas = [];
+      return;
+    }
+
+    reservas = data.map(normalizarReserva);
     localStorage.setItem('reservas', JSON.stringify(reservas));
   }
 
@@ -1073,6 +1303,13 @@
     const partes = valor.split('-');
     if (partes.length !== 3) return valor;
     return partes[2] + '/' + partes[1] + '/' + partes[0];
+  }
+
+  function fmtTime(valor) {
+    if (!valor) return '--';
+    const [hours, minutes] = String(valor).split(':');
+    if (!hours || !minutes) return String(valor);
+    return hours.padStart(2, '0') + ':' + minutes.padStart(2, '0');
   }
 
   function fmtValor(valor) {
@@ -1112,6 +1349,19 @@
     return 'Os dois';
   }
 
+  function getLocalAgendaLabel(item) {
+    const local = item.localReserva || 'ambos';
+    if (local === 'kuro') return 'Salão Kuro';
+    if (local === 'shiro') return 'Balcão Shiro';
+    return 'Salão Kuro & Balcão Shiro';
+  }
+
+  function getPagamentoLabel(item) {
+    if (isCancelada(item)) return { label: 'Reembolsado', className: 'reembolsado' };
+    if (getPresencaEstado(item) === 'pendente') return { label: 'Em aberto', className: 'aberto' };
+    return { label: 'Pago', className: 'pago' };
+  }
+
   function showScreen(nome) {
     document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));
     document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
@@ -1145,7 +1395,7 @@
   }
 
   function limparForm() {
-    ['f-pagante', 'f-reserva', 'f-valor', 'f-pessoas', 'f-motivo', 'f-obs'].forEach(id => document.getElementById(id).value = '');
+    ['f-pagante', 'f-reserva', 'f-horario', 'f-valor', 'f-pessoas', 'f-motivo', 'f-obs'].forEach(id => document.getElementById(id).value = '');
     document.getElementById('f-data-reserva').value = '';
     document.getElementById('f-data-pagamento').value = '';
     document.getElementById('f-local').value = 'ambos';
@@ -1166,6 +1416,7 @@
     document.getElementById('f-pagante').value = item.pagante || '';
     document.getElementById('f-reserva').value = item.reserva || '';
     document.getElementById('f-data-reserva').value = item.dataReserva || '';
+    document.getElementById('f-horario').value = item.horario || '';
     document.getElementById('f-data-pagamento').value = item.dataPagamento || '';
     document.getElementById('f-valor').value = item.valor ?? '';
     document.getElementById('f-pessoas').value = item.pessoas ?? '';
@@ -1215,9 +1466,10 @@
     const pagante = document.getElementById('f-pagante').value.trim();
     const reserva = document.getElementById('f-reserva').value.trim();
     const dataReserva = document.getElementById('f-data-reserva').value;
+    const horario = document.getElementById('f-horario').value;
     const dataPagamento = document.getElementById('f-data-pagamento').value;
     const valor = parseFloat(document.getElementById('f-valor').value);
-    const pessoas = parseInt(document.getElementById('f-pessoas').value, 10);
+    const pessoas = Number(document.getElementById('f-pessoas').value);
     const motivo = document.getElementById('f-motivo').value.trim();
     const localReserva = document.getElementById('f-local').value;
     const presencaConfirmada = document.getElementById('f-presenca-confirmada').value === 'sim';
@@ -1235,6 +1487,7 @@
       item.pagante = pagante;
       item.reserva = reserva;
       item.dataReserva = dataReserva;
+      item.horario = horario;
       item.dataPagamento = dataPagamento;
       item.valor = valor;
       item.pessoas = pessoas;
@@ -1249,10 +1502,11 @@
       toast('Reserva atualizada com sucesso!');
     } else {
       reservas.push({
-        id: Date.now(),
+        id: crypto.randomUUID(),
         pagante,
         reserva,
         dataReserva,
+        horario,
         dataPagamento,
         valor,
         pessoas,
@@ -1278,52 +1532,56 @@
   }
 
   function renderLista() {
-    const el = document.getElementById('lista-reservas');
-    document.getElementById('stat-total').textContent = reservas.length;
-    const confirmadas = reservas.filter(item => getPresencaEstado(item) === 'compareceu');
-    const noshow = reservas.filter(item => getPresencaEstado(item) === 'nao_compareceu');
+    const el = document.getElementById('agenda-body');
+    if (!el) return;
+
+    const agenda = [...reservas].sort((a, b) => {
+      const dataA = `${a.dataReserva || ''} ${a.horario || ''}`;
+      const dataB = `${b.dataReserva || ''} ${b.horario || ''}`;
+      return dataA.localeCompare(dataB);
+    });
+
+    document.getElementById('agenda-count').textContent = `${agenda.length} reserva${agenda.length === 1 ? '' : 's'}`;
+    const cobertos = agenda.filter(item => !isCancelada(item)).reduce((soma, item) => soma + Number(item.pessoas || 0), 0);
+    const confirmadas = agenda.filter(item => getPresencaEstado(item) === 'compareceu');
+    const noshow = agenda.filter(item => getPresencaEstado(item) === 'nao_compareceu');
     const totalRecebido = confirmadas.reduce((soma, item) => soma + Number(item.valor || 0), 0) + noshow.reduce((soma, item) => soma + Number(item.valor || 0), 0);
     const valorConfirmadas = confirmadas.reduce((soma, item) => soma + Number(item.valor || 0), 0);
     const valorNoshow = noshow.reduce((soma, item) => soma + Number(item.valor || 0), 0);
+    document.getElementById('stat-total').textContent = cobertos;
     document.getElementById('stat-valor').textContent = fmtValor(totalRecebido);
     document.getElementById('stat-conf').textContent = confirmadas.length;
     document.getElementById('stat-conf-valor').textContent = fmtValor(valorConfirmadas) + ' recebidos';
     document.getElementById('stat-noshow').textContent = noshow.length;
     document.getElementById('stat-noshow-valor').textContent = fmtValor(valorNoshow) + ' recebidos';
 
-    if (!reservas.length) {
-      el.innerHTML = '<div class="empty"><i class="ti ti-calendar-off"></i>Nenhuma reserva ainda.<br>Clique em "Nova reserva" para comeÃ§ar.</div>';
+    if (!agenda.length) {
+      el.innerHTML = '<tr><td colspan="7"><div class="agenda-empty">Nenhuma reserva cadastrada ainda.</div></td></tr>';
       return;
     }
 
-    el.innerHTML = reservas.map(item => `
-      <div class="reserva-item">
-        <div class="reserva-top">
-          <div>
-            <div class="reserva-nome">${escHtml(item.reserva)} <span class="reserva-nome-tag"> de ${escHtml(item.pagante)}</span></div>
-            <div class="reserva-sub">${fmtValor(item.valor)} &nbsp;·&nbsp; ${item.pessoas} pessoa${item.pessoas > 1 ? 's' : ''}</div>
-          </div>
-          <span class="badge ${getPresencaEstado(item) === 'compareceu' ? 'confirmed' : getPresencaEstado(item) === 'nao_compareceu' ? 'absent' : getPresencaEstado(item) === 'cancelada' ? 'cancelled' : 'pending'}">
-            <i class="ti ti-${getPresencaEstado(item) === 'compareceu' ? 'check' : getPresencaEstado(item) === 'nao_compareceu' ? 'x' : getPresencaEstado(item) === 'cancelada' ? 'ban' : 'clock'}"></i>
-            ${getPresencaEstado(item) === 'compareceu' ? 'Compareceu' : getPresencaEstado(item) === 'nao_compareceu' ? 'No-show' : getPresencaEstado(item) === 'cancelada' ? 'Cancelada' : 'Pendente'}
+    el.innerHTML = agenda.map(item => {
+      const status = getPresencaEstado(item);
+      const pagamento = getPagamentoLabel(item);
+      return `
+      <tr>
+        <td>${fmtTime(item.horario)}</td>
+        <td>
+          <span class="cliente">${escHtml(item.reserva)}</span>
+          <span class="cliente-sub">${escHtml(item.pagante || '-')}</span>
+        </td>
+        <td class="center">${item.pessoas ?? '-'}</td>
+        <td>${escHtml(getLocalAgendaLabel(item))}</td>
+        <td>
+          <span class="hanko ${status === 'compareceu' ? 'confirmada' : status === 'nao_compareceu' ? 'pendente' : status === 'cancelada' ? 'cancelada' : 'pendente'}">
+            <span class="hanko-mark">${status === 'compareceu' ? '確' : status === 'nao_compareceu' ? '待' : status === 'cancelada' ? '×' : '待'}</span>
+            ${status === 'compareceu' ? 'Confirmada' : status === 'nao_compareceu' ? 'No-show' : status === 'cancelada' ? 'Cancelada' : 'Pendente'}
           </span>
-        </div>
-        <div class="reserva-info">
-          <span class="info-chip"><i class="ti ti-users"></i> ${item.pessoas} pessoa${item.pessoas > 1 ? 's' : ''}</span>
-          <span class="info-chip"><i class="ti ti-calendar"></i> Reserva: ${fmtDate(item.dataReserva)}</span>
-          <span class="info-chip"><i class="ti ti-credit-card"></i> Pagamento: ${fmtDate(item.dataPagamento)}</span>
-          <span class="info-chip"><i class="ti ti-map-pin"></i> ${escHtml(getLocalLabel(item))}</span>
-          ${item.motivo ? `<span class="info-chip"><i class="ti ti-tag"></i> ${escHtml(item.motivo)}</span>` : ''}
-          ${item.comprovante ? '<span class="info-chip" style="color:var(--success-text)"><i class="ti ti-photo-check"></i> Comprovante anexado</span>' : ''}
-        </div>
-        <div class="reserva-actions">
-          ${item.comprovante ? `<button class="btn" onclick="verComprovante(${item.id})" style="font-size:12px;padding:5px 10px"><i class="ti ti-eye"></i> Ver comprovante</button>` : ''}
-          <button class="btn" onclick="editarReserva(${item.id})" style="font-size:12px;padding:5px 10px"><i class="ti ti-edit"></i> Editar</button>
-          ${!isCancelada(item) ? `<button class="btn" onclick="cancelarReserva(${item.id})" style="font-size:12px;padding:5px 10px"><i class="ti ti-ban"></i> Cancelar</button>` : ''}
-          <button class="btn danger" onclick="excluir(${item.id})" style="font-size:12px;padding:5px 10px"><i class="ti ti-trash"></i> Excluir</button>
-        </div>
-      </div>
-    `).join('');
+        </td>
+        <td><span class="pay-pill ${pagamento.className}">${pagamento.label}</span></td>
+        <td class="right valor">${fmtValor(item.valor)}</td>
+      </tr>`;
+    }).join('');
   }
 
   function getReservasFiltradas() {
@@ -1421,13 +1679,13 @@
   function renderAlterar() {
     const sel = document.getElementById('alt-select');
     sel.innerHTML = '<option value="">-- Selecione uma reserva --</option>' +
-      reservas.map(item => `<option value="${item.id}">${escHtml(item.reserva)} (${fmtDate(item.dataReserva)})</option>`).join('');
+      reservas.map(item => `<option value="${escHtml(item.id)}">${escHtml(item.reserva)} (${fmtDate(item.dataReserva)})</option>`).join('');
     document.getElementById('alt-form').style.display = 'none';
     document.getElementById('alt-empty').style.display = 'block';
   }
 
   function preencherDataAtual() {
-    const id = parseInt(document.getElementById('alt-select').value, 10);
+    const id = document.getElementById('alt-select').value;
     if (!id) {
       document.getElementById('alt-form').style.display = 'none';
       document.getElementById('alt-empty').style.display = 'block';
@@ -1443,7 +1701,7 @@
   }
 
   function alterarData() {
-    const id = parseInt(document.getElementById('alt-select').value, 10);
+    const id = document.getElementById('alt-select').value;
     const novaData = document.getElementById('alt-nova-data').value;
     if (!novaData) {
       toast('Informe a nova data.', 'danger');
@@ -1749,8 +2007,20 @@
   }
 
   montarIdentidadeKuroShiro();
-  renderLista();
-  renderPlanilha();
+  async function iniciarApp() {
+    try {
+      await carregarReservasBanco();
+    } catch (error) {
+      console.error('Falha ao carregar Supabase, usando cache local.', error);
+      reservas = JSON.parse(localStorage.getItem('reservas') || '[]').map(normalizarReserva);
+    }
+    renderLista();
+    renderPlanilha();
+    renderPresenca();
+    renderAlterar();
+  }
+
+  iniciarApp();
 </script>
 </body>
 </html>
