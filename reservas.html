@@ -871,6 +871,185 @@
     border-color: var(--red);
     background: rgba(158,27,27,0.04);
   }
+  .editor-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1.6fr) minmax(280px, 0.9fr);
+    gap: 18px;
+  }
+  .editor-main,
+  .editor-aside,
+  .presence-board,
+  .shift-board {
+    background: #fff;
+    border: 1px solid var(--hairline);
+    border-radius: 6px;
+    overflow: hidden;
+  }
+  .editor-head,
+  .presence-head,
+  .shift-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 18px 22px 14px;
+    border-bottom: 1px solid var(--hairline);
+  }
+  .editor-head-copy,
+  .presence-head-copy,
+  .shift-head-copy {
+    min-width: 0;
+  }
+  .editor-kicker,
+  .presence-kicker,
+  .shift-kicker {
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--stone);
+    margin-bottom: 4px;
+  }
+  .editor-title,
+  .presence-title,
+  .shift-title {
+    font-family: 'Shippori Mincho', serif;
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--ink);
+  }
+  .editor-form {
+    padding: 18px 22px 22px;
+  }
+  .editor-section {
+    padding-top: 18px;
+    margin-top: 18px;
+    border-top: 1px solid var(--hairline);
+  }
+  .editor-section:first-child {
+    padding-top: 0;
+    margin-top: 0;
+    border-top: 0;
+  }
+  .editor-section-title {
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--stone);
+    margin-bottom: 14px;
+  }
+  .row.row-3 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .field-note {
+    margin-top: 5px;
+    font-size: 11.5px;
+    color: var(--stone);
+  }
+  .editor-aside {
+    align-self: start;
+    position: sticky;
+    top: 106px;
+  }
+  .aside-block {
+    padding: 18px 22px;
+    border-bottom: 1px solid var(--hairline);
+  }
+  .aside-block:last-child {
+    border-bottom: 0;
+  }
+  .aside-label {
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--stone);
+    margin-bottom: 10px;
+  }
+  .aside-reserva {
+    font-family: 'Shippori Mincho', serif;
+    font-size: 22px;
+    line-height: 1.2;
+    color: var(--ink);
+  }
+  .aside-pagante {
+    margin-top: 6px;
+    color: var(--stone);
+    font-size: 12.5px;
+  }
+  .aside-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+  .aside-metric {
+    padding: 12px;
+    border: 1px solid var(--hairline);
+    border-radius: 6px;
+    background: var(--paper);
+  }
+  .aside-metric .metric-kicker {
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--stone);
+  }
+  .aside-metric .metric-value {
+    font-family: 'Shippori Mincho', serif;
+    font-size: 18px;
+    color: var(--ink);
+    margin-top: 4px;
+  }
+  .aside-metric .metric-sub {
+    margin-top: 2px;
+    font-size: 11px;
+    color: var(--stone);
+  }
+  .aside-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .status-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 7px 10px;
+    border-radius: 999px;
+    border: 1px solid var(--hairline);
+    font-size: 11.5px;
+    font-weight: 600;
+    color: var(--ink);
+    background: #fff;
+  }
+  .status-chip::before {
+    content: '';
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--stone-light);
+  }
+  .status-chip.confirmed::before { background: var(--red); }
+  .status-chip.pending::before { background: var(--stone); }
+  .status-chip.cancelled::before { background: var(--stone-light); }
+  .status-chip.paid::before { background: #3B6D11; }
+  .status-chip.open::before { background: var(--stone); }
+  .aside-list {
+    display: grid;
+    gap: 8px;
+    color: var(--stone);
+    font-size: 12px;
+    line-height: 1.5;
+  }
+  .presence-body,
+  .shift-body {
+    padding: 18px 22px 22px;
+  }
+  .presence-empty,
+  .shift-empty {
+    padding: 28px 0;
+    text-align: center;
+    color: var(--stone);
+    font-size: 14px;
+  }
   @media (max-width: 980px) {
     .app-shell { grid-template-columns: 1fr; }
     .sidebar {
@@ -880,14 +1059,19 @@
     .main { padding: 18px 14px 24px; }
     .topbar { flex-direction: column; align-items: flex-start; }
     .stat-row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .editor-layout { grid-template-columns: 1fr; }
+    .editor-aside { position: static; }
+    .row.row-3 { grid-template-columns: 1fr 1fr; }
   }
   @media (max-width: 600px) {
     .stat-row { grid-template-columns: 1fr; }
   }
   @media (max-width: 600px) {
     .row { grid-template-columns: 1fr; }
+    .row.row-3 { grid-template-columns: 1fr; }
     .stat-row { grid-template-columns: 1fr 1fr; }
     .sheet-summary { grid-template-columns: 1fr 1fr; }
+    .aside-grid { grid-template-columns: 1fr; }
     .nav-btn span { display: none; }
     .topbar { padding: 0 1rem; }
   }
@@ -1050,137 +1234,214 @@
   </div>
 
   <div class="screen" id="screen-nova">
-    <div class="card">
-      <div class="card-title"><i class="ti ti-calendar-plus"></i> Nova reserva</div>
+    <div class="editor-layout">
+      <section class="editor-main">
+        <div class="editor-head">
+          <div class="editor-head-copy">
+            <div class="editor-kicker">Mesa de reservas</div>
+            <div class="editor-title">Cadastro e edição de reserva</div>
+            <div class="section-hint">Mesma linguagem do painel principal, com leitura operacional rápida.</div>
+          </div>
+          <span class="tag" id="editor-mode-tag">Novo registro</span>
+        </div>
 
-      <div class="row">
-        <div>
-          <label>Nome do pagante *</label>
-          <input type="text" id="f-pagante" placeholder="Ex: João Silva">
-        </div>
-        <div>
-          <label>Nome da reserva *</label>
-          <input type="text" id="f-reserva" placeholder="Ex: Aniversário da Maria">
-        </div>
-      </div>
+        <div class="editor-form">
+          <div class="editor-section">
+            <div class="editor-section-title">Identificação</div>
+            <div class="row">
+              <div>
+                <label>Nome do pagante *</label>
+                <input type="text" id="f-pagante" placeholder="Ex: João Silva">
+              </div>
+              <div>
+                <label>Nome da reserva *</label>
+                <input type="text" id="f-reserva" placeholder="Ex: Aniversário da Maria">
+              </div>
+            </div>
+          </div>
 
-      <div class="row">
-        <div>
-          <label>Data da reserva *</label>
-          <input type="date" id="f-data-reserva">
-        </div>
-        <div>
-          <label>Horário da reserva</label>
-          <input type="time" id="f-horario">
-        </div>
-      </div>
+          <div class="editor-section">
+            <div class="editor-section-title">Agenda e financeiro</div>
+            <div class="row row-3">
+              <div>
+                <label>Data da reserva *</label>
+                <input type="date" id="f-data-reserva">
+              </div>
+              <div>
+                <label>Horário da reserva</label>
+                <input type="time" id="f-horario">
+              </div>
+              <div>
+                <label>Data do pagamento *</label>
+                <input type="date" id="f-data-pagamento">
+              </div>
+            </div>
+            <div class="row row-3">
+              <div>
+                <label>Valor pago (R$) *</label>
+                <input type="number" id="f-valor" placeholder="0,00" min="0" step="0.01">
+              </div>
+              <div>
+                <label>Quantidade de pessoas *</label>
+                <input type="number" id="f-pessoas" placeholder="Ex: 10" min="1">
+              </div>
+              <div>
+                <label>Local da reserva</label>
+                <select id="f-local">
+                  <option value="kuro">Kuro</option>
+                  <option value="shiro">Shiro</option>
+                  <option value="ambos">Os dois</option>
+                </select>
+              </div>
+            </div>
+          </div>
 
-      <div class="row">
-        <div>
-          <label>Data do pagamento *</label>
-          <input type="date" id="f-data-pagamento">
-        </div>
-        <div>
-          <label>Valor pago (R$) *</label>
-          <input type="number" id="f-valor" placeholder="0,00" min="0" step="0.01">
-        </div>
-      </div>
+          <div class="editor-section">
+            <div class="editor-section-title">Contexto de atendimento</div>
+            <div class="row row-3">
+              <div>
+                <label>Motivo</label>
+                <input type="text" id="f-motivo" placeholder="Ex: Aniversário">
+              </div>
+              <div>
+                <label>Presença confirmada</label>
+                <select id="f-presenca-confirmada">
+                  <option value="nao">Não</option>
+                  <option value="sim">Sim</option>
+                </select>
+              </div>
+              <div>
+                <label>Reserva cancelada</label>
+                <select id="f-cancelada">
+                  <option value="nao">Não</option>
+                  <option value="sim">Sim</option>
+                </select>
+              </div>
+            </div>
 
-      <div class="row">
-        <div>
-          <label>Quantidade de pessoas *</label>
-          <input type="number" id="f-pessoas" placeholder="Ex: 10" min="1">
-        </div>
-        <div>
-          <label>Motivo</label>
-          <input type="text" id="f-motivo" placeholder="Ex: Aniversário">
-        </div>
-        <div>
-          <label>Local da reserva</label>
-          <select id="f-local">
-            <option value="kuro">Kuro</option>
-            <option value="shiro">Shiro</option>
-            <option value="ambos">Os dois</option>
-          </select>
-        </div>
-      </div>
+            <label>Observações</label>
+            <textarea id="f-obs" placeholder="Detalhes adicionais"></textarea>
+            <div class="field-note">Use este campo para restrições de mesa, celebrações, alergias ou observações da equipe.</div>
+          </div>
 
-      <div class="row">
-        <div>
-          <label>Presença confirmada</label>
-          <select id="f-presenca-confirmada">
-            <option value="nao">Não</option>
-            <option value="sim">Sim</option>
-          </select>
+          <div class="editor-section">
+            <div class="editor-section-title">Comprovante</div>
+            <label>Comprovante de pagamento</label>
+            <p class="section-hint">Opcional — JPEG, PNG ou PDF</p>
+            <div class="comprovante-box" onclick="document.getElementById('f-comprovante').click()" id="comp-box">
+              <i class="ti ti-cloud-upload"></i>
+              <p>Clique para enviar foto do comprovante</p>
+            </div>
+            <input type="file" id="f-comprovante" accept="image/*" style="display:none" onchange="previewComp(this)">
+            <img id="comp-preview" class="comprovante-preview" style="display:none" alt="Pré-visualização do comprovante">
+          </div>
+
+          <div class="actions">
+            <button class="btn" id="cancel-edit-btn" onclick="cancelarEdicao()" style="display:none;">Cancelar edição</button>
+            <button class="btn" onclick="cancelarFormulario()">Cancelar</button>
+            <button class="btn primary" onclick="salvarReserva()" id="save-reserva-btn">
+              <i class="ti ti-device-floppy"></i> Salvar reserva
+            </button>
+          </div>
         </div>
-        <div>
-          <label>Reserva cancelada</label>
-          <select id="f-cancelada">
-            <option value="nao">Não</option>
-            <option value="sim">Sim</option>
-          </select>
+      </section>
+
+      <aside class="editor-aside">
+        <div class="aside-block">
+          <div class="aside-label">Leitura rápida</div>
+          <div class="aside-reserva" id="draft-reserva">Nova reserva</div>
+          <div class="aside-pagante" id="draft-pagante">Pagante ainda não informado</div>
         </div>
-      </div>
 
-      <label>Observações</label>
-      <textarea id="f-obs" placeholder="Detalhes adicionais"></textarea>
+        <div class="aside-block">
+          <div class="aside-label">Resumo operacional</div>
+          <div class="aside-grid">
+            <div class="aside-metric">
+              <div class="metric-kicker">Data</div>
+              <div class="metric-value" id="draft-data">--/--</div>
+              <div class="metric-sub" id="draft-horario">Horário em aberto</div>
+            </div>
+            <div class="aside-metric">
+              <div class="metric-kicker">Financeiro</div>
+              <div class="metric-value" id="draft-valor">R$ 0,00</div>
+              <div class="metric-sub" id="draft-pessoas">0 pessoas</div>
+            </div>
+          </div>
+        </div>
 
-      <label>Comprovante de pagamento</label>
-      <p class="section-hint">Opcional — JPEG, PNG ou PDF</p>
-      <div class="comprovante-box" onclick="document.getElementById('f-comprovante').click()" id="comp-box">
-        <i class="ti ti-cloud-upload"></i>
-        <p>Clique para enviar foto do comprovante</p>
-      </div>
-      <input type="file" id="f-comprovante" accept="image/*" style="display:none" onchange="previewComp(this)">
-      <img id="comp-preview" class="comprovante-preview" style="display:none" alt="Pré-visualização do comprovante">
+        <div class="aside-block">
+          <div class="aside-label">Status</div>
+          <div class="aside-pills">
+            <span class="status-chip pending" id="draft-presenca-chip">Presença pendente</span>
+            <span class="status-chip open" id="draft-pagamento-chip">Pagamento em aberto</span>
+            <span class="status-chip pending" id="draft-local-chip">Sem local definido</span>
+          </div>
+        </div>
 
-      <div class="actions">
-        <button class="btn" id="cancel-edit-btn" onclick="cancelarEdicao()" style="display:none;">Cancelar edição</button>
-        <button class="btn" onclick="cancelarFormulario()">Cancelar</button>
-        <button class="btn primary" onclick="salvarReserva()" id="save-reserva-btn">
-          <i class="ti ti-device-floppy"></i> Salvar reserva
-        </button>
-      </div>
+        <div class="aside-block">
+          <div class="aside-label">Nota de operação</div>
+          <div class="aside-list">
+            <div id="draft-motivo">Motivo não informado.</div>
+            <div id="draft-obs">Sem observações adicionais.</div>
+          </div>
+        </div>
+      </aside>
     </div>
   </div>
 
   <div class="screen" id="screen-presenca">
-    <div class="card">
-      <div class="card-title"><i class="ti ti-user-check"></i> Confirmação de presença</div>
-      <div id="lista-presenca">
-        <div class="empty"><i class="ti ti-users"></i>Nenhuma reserva cadastrada ainda.</div>
+    <div class="presence-board">
+      <div class="presence-head">
+        <div class="presence-head-copy">
+          <div class="presence-kicker">Operação de sala</div>
+          <div class="presence-title">Confirmação de presença</div>
+          <div class="section-hint">Atualize comparecimento e no-show no mesmo padrão do dashboard.</div>
+        </div>
+        <span class="tag">Equipe de atendimento</span>
+      </div>
+      <div class="presence-body" id="lista-presenca">
+        <div class="presence-empty"><i class="ti ti-users"></i>Nenhuma reserva cadastrada ainda.</div>
       </div>
     </div>
   </div>
 
   <div class="screen" id="screen-alterar">
-    <div class="card">
-      <div class="card-title"><i class="ti ti-calendar-edit"></i> Alterar data da reserva</div>
-      <label>Selecionar reserva</label>
-      <select id="alt-select" onchange="preencherDataAtual()">
-        <option value="">-- Selecione uma reserva --</option>
-      </select>
-
-      <div id="alt-form" style="display:none; margin-top:1rem;">
-        <div class="row">
-          <div>
-            <label>Data atual</label>
-            <input type="text" id="alt-data-atual" disabled>
-          </div>
-          <div>
-            <label>Nova data *</label>
-            <input type="date" id="alt-nova-data">
-          </div>
+    <div class="shift-board">
+      <div class="shift-head">
+        <div class="shift-head-copy">
+          <div class="shift-kicker">Reacomodação</div>
+          <div class="shift-title">Alterar data da reserva</div>
+          <div class="section-hint">Reagende mantendo a mesma lógica de leitura do restante do painel.</div>
         </div>
-        <div class="actions">
-          <button class="btn primary" onclick="alterarData()">
-            <i class="ti ti-calendar-check"></i> Confirmar alteração
-          </button>
-        </div>
+        <span class="tag">Ajuste pontual</span>
       </div>
+      <div class="shift-body">
+        <label>Selecionar reserva</label>
+        <select id="alt-select" onchange="preencherDataAtual()">
+          <option value="">-- Selecione uma reserva --</option>
+        </select>
 
-      <div id="alt-empty" style="padding:2rem 0; text-align:center; color:var(--text-muted); font-size:14px;">
-        Selecione uma reserva para alterar a data.
+        <div id="alt-form" style="display:none; margin-top:1rem;">
+          <div class="row">
+            <div>
+              <label>Data atual</label>
+              <input type="text" id="alt-data-atual" disabled>
+            </div>
+            <div>
+              <label>Nova data *</label>
+              <input type="date" id="alt-nova-data">
+            </div>
+          </div>
+          <div class="actions">
+            <button class="btn primary" onclick="alterarData()">
+              <i class="ti ti-calendar-check"></i> Confirmar alteração
+            </button>
+          </div>
+        </div>
+
+        <div id="alt-empty" class="shift-empty">
+          Selecione uma reserva para alterar a data.
+        </div>
       </div>
     </div>
   </div>
@@ -1380,6 +1641,62 @@
     showScreen('nova');
   }
 
+  function renderDraftReserva() {
+    const reserva = document.getElementById('f-reserva')?.value.trim() || 'Nova reserva';
+    const pagante = document.getElementById('f-pagante')?.value.trim() || 'Pagante ainda não informado';
+    const dataReserva = document.getElementById('f-data-reserva')?.value || '';
+    const horario = document.getElementById('f-horario')?.value || '';
+    const valor = Number(document.getElementById('f-valor')?.value || 0);
+    const pessoas = Number(document.getElementById('f-pessoas')?.value || 0);
+    const motivo = document.getElementById('f-motivo')?.value.trim() || '';
+    const local = document.getElementById('f-local')?.value || 'ambos';
+    const presencaConfirmada = document.getElementById('f-presenca-confirmada')?.value === 'sim';
+    const cancelada = document.getElementById('f-cancelada')?.value === 'sim';
+    const obs = document.getElementById('f-obs')?.value.trim() || '';
+    const dataPagamento = document.getElementById('f-data-pagamento')?.value || '';
+
+    const localTexto = local === 'kuro' ? 'Salão Kuro' : local === 'shiro' ? 'Balcão Shiro' : 'Salão Kuro & Balcão Shiro';
+    const presencaTexto = cancelada ? 'Reserva cancelada' : presencaConfirmada ? 'Presença confirmada' : 'Presença pendente';
+    const presencaClasse = cancelada ? 'cancelled' : presencaConfirmada ? 'confirmed' : 'pending';
+    const pagamentoTexto = cancelada ? 'Pagamento reembolsado' : dataPagamento ? 'Pagamento registrado' : 'Pagamento em aberto';
+    const pagamentoClasse = cancelada ? 'cancelled' : dataPagamento ? 'paid' : 'open';
+
+    document.getElementById('draft-reserva').textContent = reserva;
+    document.getElementById('draft-pagante').textContent = pagante;
+    document.getElementById('draft-data').textContent = dataReserva ? fmtDate(dataReserva) : '--/--';
+    document.getElementById('draft-horario').textContent = horario ? fmtTime(horario) : 'Horário em aberto';
+    document.getElementById('draft-valor').textContent = fmtValor(valor);
+    document.getElementById('draft-pessoas').textContent = `${pessoas || 0} pessoa${pessoas === 1 ? '' : 's'}`;
+
+    const presencaChip = document.getElementById('draft-presenca-chip');
+    presencaChip.className = `status-chip ${presencaClasse}`;
+    presencaChip.textContent = presencaTexto;
+
+    const pagamentoChip = document.getElementById('draft-pagamento-chip');
+    pagamentoChip.className = `status-chip ${pagamentoClasse}`;
+    pagamentoChip.textContent = pagamentoTexto;
+
+    const localChip = document.getElementById('draft-local-chip');
+    localChip.className = 'status-chip pending';
+    localChip.textContent = localTexto;
+
+    document.getElementById('draft-motivo').textContent = motivo ? `Motivo: ${motivo}` : 'Motivo não informado.';
+    document.getElementById('draft-obs').textContent = obs ? `Observações: ${obs}` : 'Sem observações adicionais.';
+    document.getElementById('editor-mode-tag').textContent = editingReservaId ? 'Edição em andamento' : 'Novo registro';
+  }
+
+  function conectarPreviewFormulario() {
+    ['f-pagante', 'f-reserva', 'f-data-reserva', 'f-horario', 'f-data-pagamento', 'f-valor', 'f-pessoas', 'f-motivo', 'f-local', 'f-presenca-confirmada', 'f-cancelada', 'f-obs']
+      .forEach(id => {
+        const campo = document.getElementById(id);
+        if (campo) {
+          campo.addEventListener('input', renderDraftReserva);
+          campo.addEventListener('change', renderDraftReserva);
+        }
+      });
+    renderDraftReserva();
+  }
+
   function previewComp(input) {
     const file = input.files[0];
     if (!file) return;
@@ -1410,6 +1727,7 @@
     const cancelEditBtn = document.getElementById('cancel-edit-btn');
     if (saveBtn) saveBtn.innerHTML = '<i class="ti ti-device-floppy"></i> Salvar reserva';
     if (cancelEditBtn) cancelEditBtn.style.display = 'none';
+    renderDraftReserva();
   }
 
   function preencherFormulario(item) {
@@ -1443,6 +1761,7 @@
     const cancelEditBtn = document.getElementById('cancel-edit-btn');
     if (saveBtn) saveBtn.innerHTML = '<i class="ti ti-device-floppy"></i> Atualizar reserva';
     if (cancelEditBtn) cancelEditBtn.style.display = 'inline-flex';
+    renderDraftReserva();
   }
 
   function editarReserva(id) {
@@ -1655,7 +1974,7 @@
   function renderPresenca() {
     const el = document.getElementById('lista-presenca');
     if (!reservas.length) {
-      el.innerHTML = '<div class="empty"><i class="ti ti-users"></i>Nenhuma reserva cadastrada ainda.</div>';
+      el.innerHTML = '<div class="presence-empty"><i class="ti ti-users"></i>Nenhuma reserva cadastrada ainda.</div>';
       return;
     }
 
@@ -2007,6 +2326,7 @@
   }
 
   montarIdentidadeKuroShiro();
+  conectarPreviewFormulario();
   async function iniciarApp() {
     try {
       await carregarReservasBanco();
